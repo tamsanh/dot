@@ -68,5 +68,6 @@ set laststatus=2
 let g:airline_theme='powerlineish'
 
 " Workspace
-let g:workspace_autosave_always = 1
+" Removed because it works only after insertions
+" let g:workspace_autosave_always = 1
 
