@@ -81,3 +81,17 @@ function d {
   fi
 }
 
+# Copy to clipboard
+function cl {
+  cat - | xclip -selection c
+}
+
+# Copy path to clipboard
+function p {
+  if [ -z "$1" ]
+  then
+    pwd | tr -d '\n' | cl
+  else
+    python3 -c "import os; print(os.path.join('`pwd`', '$1'))" | tr -d '\n' | cl
+  fi
+}
