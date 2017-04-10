@@ -27,7 +27,7 @@ function vsrc {
   else
       mkdir -p $homedir/dev/env 2> /dev/null
       cd $homedir/dev/env
-      virtualenv $c
+      virtualenv --python=python3 $c
       source $homedir/dev/env/$c/bin/activate
       cd -
   fi
