@@ -53,3 +53,31 @@ function dm {
     echo "Not a Django Project"
   fi
 }
+
+# folder description
+function d {
+  dname=.tam-description.json
+  dfile="$1/$dname"
+  if [ -z "$2" ]
+  then
+    if [ -e $1 ] && [ -d $1 ]
+    then
+      if [ -e $dfile ]
+      then
+        cat $dfile | jq 1>&2
+      else
+        echo "No Description" 1>&2
+      fi
+    else
+      echo "$1 is not a directory" 1>&2
+    fi
+  else
+    if [ ! -e $dfile ]
+    then
+      echo "[]" > $dfile
+    fi
+    python3 -c "import json; f = open('$dfile'); rf=f.read(); f.close(); previousd = json.loads(rf); f = open('$dfile', 'w'); f.write(json.dumps(previousd + [{'date': '`date`', 'desc': '$2'}])); f.close();"
+    cat $dfile | jq 1>&2
+  fi
+}
+
