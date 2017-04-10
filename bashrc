@@ -3,7 +3,7 @@ export VISUAL=vim
 export EDITOR="$VISUAL"
 
 # ls aliases
-alias ls="ls -G"
+alias ls="ls --color=auto"
 alias l="ls -l"
 alias ll="ls -l"
 alias lll="ls -l"
