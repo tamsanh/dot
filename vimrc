@@ -9,7 +9,6 @@ set listchars=tab:>·,trail:·,extends:>,precedes:< ",space:␣,eol:¬,
 
 " Split shortcuts
 noremap <C-d> :split<CR>
-noremap <C-s-d> :vsplit<CR>
 
 
 " Deal with searching
