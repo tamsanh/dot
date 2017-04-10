@@ -34,7 +34,6 @@ set sw=2
 set nu
 set ai
 
-set tw=79
 set colorcolumn=80
 highlight ColorColumn ctermbg=233
 
