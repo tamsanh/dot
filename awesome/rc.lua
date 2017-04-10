@@ -184,12 +184,18 @@ for s = 1, screen.count() do
     -- Create a tasklist widget
     mytasklist[s] = awful.widget.tasklist(s, awful.widget.tasklist.filter.currenttags, mytasklist.buttons)
 
-    -- Create battery width --Tam
+    -- Create battery widget --Tam
     local battery_widget = require("plugins/battery-widget")
     battery = battery_widget({
       adapter = "BAT1",
       listen = false,
     })
+
+    -- -- Create volume widget --Tam
+    -- -- load the widget code
+    -- local volume_control = require("plugins/volume-control")
+    -- volumecfg = volume_control({})
+
 
     -- Create the wibox
     mywibox[s] = awful.wibox({ position = "top", screen = s })
@@ -204,6 +210,7 @@ for s = 1, screen.count() do
     local right_layout = wibox.layout.fixed.horizontal()
     if s == 1 then right_layout:add(wibox.widget.systray()) end
     right_layout:add(battery.widget)
+    -- right_layout:add(volumecfg.widget)
     right_layout:add(mytextclock)
     right_layout:add(mylayoutbox[s])
 
