@@ -1,6 +1,3 @@
-" Autoreload vimrc
-autocmd! bufwritepost .vimrc source %
-
 " Easy to turn on paste mode
 set pastetoggle=<F2>
 
@@ -41,12 +38,22 @@ call plug#begin('~/.vim/plugged')
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'airblade/vim-gitgutter'
+Plug 'thaerkh/vim-workspace'
 
 call plug#end()
 
-let g:airline_theme='powerlineish'
-
-"" Commands to run after
+"" Commands to run after adding new plugins
 " PlugInstall
 " PlugClean
 " PlugUpdate
+
+
+"" Setup plugins
+
+" Airline
+set laststatus=2
+let g:airline_theme='powerlineish'
+
+" Workspace
+let g:workspace_autosave_always = 1
+
