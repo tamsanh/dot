@@ -95,3 +95,40 @@ function p {
     python3 -c "import os; print(os.path.join('`pwd`', '$1'))" | tr -d '\n' | cl
   fi
 }
+
+
+# Youtube-dl shortcut
+alias you='youtube-dl -o "%(title)s -- %(uploader)s"'
+
+# Upload to iOS VLC
+function to_vlc {
+  ios_url=${IOS_URL:-http://Tams-iPhone.local}
+  curl -# -F file=@"$1" $ios_url/upload.json > /dev/null
+}
+
+# Download from YouTube, Upload to VLC
+function youvlc {
+  youtube_url="$1"
+  tempdir=`mktemp -d`
+  cd $tempdir
+  you $youtube_url
+  if [ "$?" -ne 0 ]
+  then
+    echo "Error Downloading Occured" 1>&2
+    exit 1
+  fi
+  for filename in *;
+  do
+    echo "Uploading '$filename' to iOS VLC..." 1>&2
+    to_vlc "$filename"
+    if [ "$?" -ne 0 ]
+    then
+      echo "Error Uploading Occured" 1>&2
+      exit 1
+    fi
+  done
+  cd - 2>&1 > /dev/null
+  rm -r $tempdir
+  echo "Completed Upload of '$filename' to iOS VLC." 1>&2
+}
+
