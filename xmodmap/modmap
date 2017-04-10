@@ -6,5 +6,6 @@
 !add mod1 = Super_L
 !add mod4 = Alt_L
 
-! Use Mugen as Super
+! Use Mugenm, Henkou as Super
 keycode 102 = Super_L
+keycode 100 = Super_L
