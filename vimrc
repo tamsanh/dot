@@ -51,7 +51,6 @@ call plug#begin('~/.vim/plugged')
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'airblade/vim-gitgutter'
-Plug 'thaerkh/vim-workspace'
 
 call plug#end()
 
@@ -66,8 +65,4 @@ call plug#end()
 " Airline
 set laststatus=2
 let g:airline_theme='powerlineish'
-
-" Workspace
-" Removed because it works only after insertions
-" let g:workspace_autosave_always = 1
 
