@@ -132,3 +132,5 @@ function youvlc {
   echo "Completed Upload of '$filename' to iOS VLC." 1>&2
 }
 
+# Vim Alias
+alias v='vim'
