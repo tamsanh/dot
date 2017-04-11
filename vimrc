@@ -1,7 +1,6 @@
 " Easy to turn on paste mode
 set pastetoggle=<F2>
 
-
 " Show whitespace
 set list
 set listchars=tab:>·,trail:·,extends:>,precedes:< ",space:␣,eol:¬,
@@ -46,11 +45,16 @@ syntax on
 
 call plug#begin('~/.vim/plugged')
 
+Plug 'airblade/vim-gitgutter'
+
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-Plug 'airblade/vim-gitgutter'
+
+Plug 'octref/RootIgnore'
 Plug 'https://github.com/ctrlpvim/ctrlp.vim'
+
 Plug 'scrooloose/nerdtree'
+Plug 'Xuyuanp/nerdtree-git-plugin'
 
 call plug#end()
 
@@ -60,25 +64,34 @@ call plug#end()
 " PlugUpdate
 
 
-"" Setup plugins
+""" Setup plugins
 
 "" Airline
 set laststatus=2
 let g:airline_theme='powerlineish'
 
+"----------
+
 "" CtrlP
+
 " Ignore gitignore files
 let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
+
 " Add mapping commands
 let g:ctrlp_map = '<c-p>'
 let g:ctrlp_cmd = 'CtrlP'
 
+"----------
+
 "" NERDTree
+
 " Close vim if only NERDTree is left
 " autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
+
 " Open NERDTree if no files were specified
 autocmd StdinReadPre * let s:std_in=1
 autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
+
 " Open NERDTree if in a directory
 autocmd StdinReadPre * let s:std_in=1
 autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | endif
@@ -98,3 +111,12 @@ endfunction
 
 noremap <C-\> :call TamNERDTreeToggle()<CR>
 
+" Turn Off Old FileManager
+let loaded_netrwPlugin=1
+
+"----------
+
+" Use RootIgnore to ignore dirs in NERDTree
+let NERDTreeRespectWildIgnore=1
+
+"----------
