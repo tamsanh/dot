@@ -88,13 +88,18 @@ function cl {
   cat - | xclip -selection c
 }
 
+# Paste from clipboard
+alias pl="xclip -o -selection c"
+
 # Copy path to clipboard
 function p {
   if [ -z "$1" ]
   then
     pwd | tr -d '\n' | cl
+    pl
   else
     python3 -c "import os; print(os.path.join('`pwd`', '$1'))" | tr -d '\n' | cl
+    pl
   fi
 }
 
