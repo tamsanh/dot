@@ -38,8 +38,8 @@ theme.border_marked = "#91231c"
 -- Display the taglist squares
 -- theme.taglist_squares_sel   = "/usr/share/awesome/themes/default/taglist/squarefw.png"
 -- theme.taglist_squares_unsel = "/usr/share/awesome/themes/default/taglist/squarew.png"
-theme.taglist_squares_sel   = "/home/tamu/Pictures/cornerfw.png"
-theme.taglist_squares_unsel   = "/home/tamu/Pictures/cornerfw.png"
+theme.taglist_squares_sel   = "/home/tamu/.config/awesome/themes/default/cornerfw.png"
+theme.taglist_squares_unsel   = "/home/tamu/.config/awesome/themes/default/cornerfw_small.png"
 
 -- Variables set for theming the menu:
 -- menu_[bg|fg]_[normal|focus]
@@ -94,7 +94,7 @@ theme.layout_spiral  = "/usr/share/awesome/themes/default/layouts/spiralw.png"
 theme.layout_dwindle = "/usr/share/awesome/themes/default/layouts/dwindlew.png"
 
 -- theme.awesome_icon = "/usr/share/awesome/icons/awesome16.png"
-theme.awesome_icon = "/home/tamu/Pictures/awesome16_grey.png"
+theme.awesome_icon = "/home/tamu/.config/awesome/themes/default/awesome16_grey.png"
 
 -- Define the icon theme for application icons. If not set then the icons 
 -- from /usr/share/icons and /usr/share/icons/hicolor will be used.
