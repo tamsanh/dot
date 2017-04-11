@@ -1,3 +1,5 @@
+CURR_DIR=$(cd `dirname $0`; pwd)
+
 # Vim as default
 export VISUAL=vim
 export EDITOR="$VISUAL"
@@ -135,6 +137,22 @@ function youvlc {
 # Vim Alias
 alias v='vim'
 
+# Vim Edit Alias
+alias vv="vim $CURR_DIR/vimrc"
+
 # Bash Reload Alias
 alias sb='source ~/.bashrc'
+
+# Bash Edit Alias
+alias vb="vim $CURR_DIR/bashrc"
+
+# Git Aliases
+alias g='git'
+alias gc='g commit'
+alias gcm='g commit -m'
+alias gch='g checkout'
+alias gd='g diff'
+alias ga='g add'
+alias gs='g status --short'
+alias hl='hlog'
 
