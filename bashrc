@@ -134,3 +134,7 @@ function youvlc {
 
 # Vim Alias
 alias v='vim'
+
+# Bash Reload Alias
+alias sb='source ~/.bashrc'
+
