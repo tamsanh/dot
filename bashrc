@@ -1,4 +1,4 @@
-CURR_DIR=$(cd `dirname $0`; pwd)
+CURR_DIR=$(cd `dirname ${BASH_SOURCE[0]}` && pwd)
 
 # Vim as default
 export VISUAL=vim
