@@ -1,3 +1,6 @@
+" Get access to bash commands
+set shellcmdflag=-ic
+
 " Easy to turn on paste mode
 set pastetoggle=<F2>
 
@@ -13,7 +16,7 @@ noremap <C-d> :split<CR>
 " Deal with searching
 set hlsearch
 set incsearch
-set ignorecase
+" set ignorecase
 
 
 " Remove highlight of last search
@@ -36,6 +39,10 @@ set ai
 set colorcolumn=80
 highlight ColorColumn ctermbg=233
 
+" Set ejs as html syntax
+filetype on
+au BufNewFile,BufRead *.ejs set filetype=html
+
 syntax on
 
 """""""""""""""""""""""""""""""""""""""
@@ -55,6 +62,8 @@ Plug 'https://github.com/ctrlpvim/ctrlp.vim'
 
 Plug 'scrooloose/nerdtree'
 Plug 'Xuyuanp/nerdtree-git-plugin'
+
+Plug 'Quramy/tsuquyomi'
 
 call plug#end()
 
