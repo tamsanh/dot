@@ -63,8 +63,6 @@ Plug 'https://github.com/ctrlpvim/ctrlp.vim'
 Plug 'scrooloose/nerdtree'
 Plug 'Xuyuanp/nerdtree-git-plugin'
 
-Plug 'Quramy/tsuquyomi'
-
 call plug#end()
 
 "" Commands to run after adding new plugins
