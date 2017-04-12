@@ -56,6 +56,9 @@ editor_cmd = terminal .. " -e " .. editor
 -- However, you can use another modifier like Mod1, but it may interact with others.
 modkey = "Mod4"
 
+-- Start Extras -- Tam
+awful.util.spawn('/home/tamu/.config/awesome/autorun.sh')
+
 -- Table of layouts to cover with awful.layout.inc, order matters.
 local layouts =
 {
