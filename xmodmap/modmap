@@ -1,4 +1,4 @@
-!! Switch Super and Alt
+!!! Switch Super and Alt
 !keycode 133 = Super_L
 !keycode 64 = Alt_L
 !remove mod1 = Alt_L
@@ -6,6 +6,19 @@
 !add mod1 = Super_L
 !add mod4 = Alt_L
 
+!!! Use Japanese and Alt Both as Super
+!! UNSUCCESSFUL
+!keycode 133 = Super_L
+!keycode 102 = Super_L
+!keycode 100 = Super_L
+!keycode 64 = Alt_L
+!remove mod1 = Alt_L
+!remove mod4 = Super_L
+!add mod1 = Super_L
+!add mod4 = Alt_L
+
+
+!!! Japanese Keyboard Configuration
 ! Use Mugenm, Henkou as Super
 keycode 102 = Super_L
 keycode 100 = Super_L
