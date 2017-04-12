@@ -96,10 +96,10 @@ function p {
   if [ -z "$1" ]
   then
     pwd | tr -d '\n' | cl
-    pl
+    echo `pl`
   else
     python3 -c "import os; print(os.path.join('`pwd`', '$1'))" | tr -d '\n' | cl
-    pl
+    echo `pl`
   fi
 }
 
@@ -158,6 +158,7 @@ alias gcm='g commit -m'
 alias gch='g checkout'
 alias gd='g diff'
 alias ga='g add'
+alias gg='g grep'
 alias gs='g status --short'
 alias hl='hlog'
 
