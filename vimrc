@@ -43,6 +43,8 @@ highlight ColorColumn ctermbg=233
 " Add tab settings
 nnoremap th  :tabprev<CR>
 nnoremap tl  :tabnext<CR>
+nnoremap tj  :tabnext<CR>
+nnoremap tk  :tabprev<CR>
 nnoremap tt  <C-W>T
 nnoremap tm  :tabm<Space>
 nnoremap td  :tabclose<CR>
