@@ -39,6 +39,14 @@ set ai
 set colorcolumn=80
 highlight ColorColumn ctermbg=233
 
+
+" Add tab settings
+nnoremap th  :tabprev<CR>
+nnoremap tl  :tabnext<CR>
+nnoremap tt  <C-W>T
+nnoremap tm  :tabm<Space>
+nnoremap td  :tabclose<CR>
+
 " Set ejs as html syntax
 filetype on
 au BufNewFile,BufRead *.ejs set filetype=html
@@ -61,7 +69,7 @@ Plug 'octref/RootIgnore'
 Plug 'https://github.com/ctrlpvim/ctrlp.vim'
 
 Plug 'scrooloose/nerdtree'
-Plug 'Xuyuanp/nerdtree-git-plugin'
+" Plug 'Xuyuanp/nerdtree-git-plugin'
 
 call plug#end()
 
