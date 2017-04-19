@@ -23,9 +23,10 @@ local function do_spiral(p)
     for k, c in ipairs(cls) do
         -- For every even one
         -- Make the new width one half
-        local border_width_offset = old_width - math.ceil(old_width / 1.65)
         if k == 1 then
-          wa.width, old_width = math.ceil(old_width / 1.65), wa.width
+            if k ~= n then
+              wa.width, old_width = math.ceil(old_width / 1.65), wa.width
+            end
         elseif k % 2 == 0 then
             if k == 2 then
               wa.width, old_width = old_width - math.ceil(old_width / 1.65), wa.width
