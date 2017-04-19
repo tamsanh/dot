@@ -71,7 +71,9 @@ Plug 'octref/RootIgnore'
 Plug 'https://github.com/ctrlpvim/ctrlp.vim'
 
 Plug 'scrooloose/nerdtree'
-" Plug 'Xuyuanp/nerdtree-git-plugin'
+Plug 'leafgarland/typescript-vim'
+Plug 'Quramy/tsuquyomi'
+Plug 'Shougo/vimproc'
 
 call plug#end()
 
