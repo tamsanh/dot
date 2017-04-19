@@ -159,6 +159,7 @@ alias gch='g checkout'
 alias gd='g diff'
 alias ga='g add'
 alias gg='g grep'
+alias gl='g log'
 alias gs='g diff --stat && g status --short | grep ??'
 alias hl='hlog'
 
