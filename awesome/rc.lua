@@ -59,16 +59,20 @@ modkey = "Mod4"
 -- Start Extras -- Tam
 awful.util.spawn('/home/tamu/.config/awesome/autorun.sh')
 
+
+-- Use the tam-dwindle -- Tam
+local tam_dwindle = require("plugins/tam-dwindle")
+
 -- Table of layouts to cover with awful.layout.inc, order matters.
 local layouts =
 {
+    tam_dwindle,
     awful.layout.suit.tile,
     awful.layout.suit.tile.left,
     awful.layout.suit.tile.bottom,
     awful.layout.suit.tile.top,
     awful.layout.suit.fair,
     awful.layout.suit.fair.horizontal,
-    awful.layout.suit.spiral.dwindle,
     awful.layout.suit.magnifier,
 }
     -- awful.layout.suit.spiral,
