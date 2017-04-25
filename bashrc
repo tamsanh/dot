@@ -56,10 +56,11 @@ function dm {
   fi
 }
 
+DNAME=tam-desc.json
+
 # folder description
 function d {
-  dname=tam-desc.json
-  dfile="$dname"
+  dfile="$DNAME"
   if [ -z "$1" ]
   then
     if [ -e $dfile ]
@@ -76,6 +77,17 @@ function d {
     description="${@}"
     python3 -c "import json; f = open('$dfile'); rf=f.read(); f.close(); previousd = json.loads(rf); f = open('$dfile', 'w'); f.write(json.dumps(previousd + [{'date': '`date`', 'desc': '$description'}])); f.close();"
     cat $dfile | jq 1>&2
+  fi
+}
+
+# last folder description
+function lastd {
+  dfile="$DNAME"
+  if [ -e $dfile ]
+  then
+    cat $dfile | jq ".[-1]" 1>&2
+  else
+    echo "No Description" 1>&2
   fi
 }
 
