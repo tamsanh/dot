@@ -58,7 +58,7 @@ function dm {
 
 # folder description
 function d {
-  dname=.tam-description.json
+  dname=tam-desc.json
   dfile="$1/$dname"
   if [ -z "$2" ]
   then
@@ -78,7 +78,8 @@ function d {
     then
       echo "[]" > $dfile
     fi
-    python3 -c "import json; f = open('$dfile'); rf=f.read(); f.close(); previousd = json.loads(rf); f = open('$dfile', 'w'); f.write(json.dumps(previousd + [{'date': '`date`', 'desc': '$2'}])); f.close();"
+    ss="${@:2}"
+    python3 -c "import json; f = open('$dfile'); rf=f.read(); f.close(); previousd = json.loads(rf); f = open('$dfile', 'w'); f.write(json.dumps(previousd + [{'date': '`date`', 'desc': '$ss'}])); f.close();"
     cat $dfile | jq 1>&2
   fi
 }
