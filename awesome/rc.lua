@@ -74,6 +74,7 @@ local layouts =
     awful.layout.suit.fair,
     awful.layout.suit.fair.horizontal,
     awful.layout.suit.magnifier,
+    awful.layout.suit.spiral.dwindle,
 }
     -- awful.layout.suit.spiral,
     -- awful.layout.suit.max.fullscreen,
