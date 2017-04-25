@@ -12,7 +12,7 @@ alias lll="ls -l"
 
 # hlog alias
 function hlog {
-  git log --date-order --all --graph --format="%C(green)%h %Creset%C(yellow)%an%Creset %C(blue bold)%ar%Creset %C(red bold)%d%Creset %s"
+  git log $@ --date-order --all --graph --format="%C(green)%h %Creset%C(yellow)%an%Creset %C(blue bold)%ar%Creset %C(red bold)%d%Creset %s"
 }
 
 # virtualenv creator
@@ -160,6 +160,6 @@ alias gd='g diff'
 alias ga='g add'
 alias gg='g grep'
 alias gl='g log'
-alias gs='g diff --stat && g status --short | grep ??'
+alias gs='g diff --stat && g status --short | grep "??"'
 alias hl='hlog'
 
