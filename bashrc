@@ -59,27 +59,22 @@ function dm {
 # folder description
 function d {
   dname=tam-desc.json
-  dfile="$1/$dname"
-  if [ -z "$2" ]
+  dfile="$dname"
+  if [ -z "$1" ]
   then
-    if [ -e $1 ] && [ -d $1 ]
+    if [ -e $dfile ]
     then
-      if [ -e $dfile ]
-      then
-        cat $dfile | jq 1>&2
-      else
-        echo "No Description" 1>&2
-      fi
+      cat $dfile | jq 1>&2
     else
-      echo "$1 is not a directory" 1>&2
+      echo "No Description" 1>&2
     fi
   else
     if [ ! -e $dfile ]
     then
       echo "[]" > $dfile
     fi
-    ss="${@:2}"
-    python3 -c "import json; f = open('$dfile'); rf=f.read(); f.close(); previousd = json.loads(rf); f = open('$dfile', 'w'); f.write(json.dumps(previousd + [{'date': '`date`', 'desc': '$ss'}])); f.close();"
+    description="${@}"
+    python3 -c "import json; f = open('$dfile'); rf=f.read(); f.close(); previousd = json.loads(rf); f = open('$dfile', 'w'); f.write(json.dumps(previousd + [{'date': '`date`', 'desc': '$description'}])); f.close();"
     cat $dfile | jq 1>&2
   fi
 }
