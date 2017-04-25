@@ -163,3 +163,5 @@ alias gl='g log'
 alias gs='g diff --stat && g status --short | grep "??"'
 alias hl='hlog'
 
+# Ruby Version Manager
+source ~/.rvm/scripts/rvm
