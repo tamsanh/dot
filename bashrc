@@ -65,7 +65,7 @@ function d {
   then
     if [ -e $dfile ]
     then
-      cat $dfile | jq 1>&2
+      cat $dfile | jq ".[-1]" 1>&2
     else
       echo "No Description" 1>&2
     fi
@@ -76,20 +76,22 @@ function d {
     fi
     description="${@}"
     python3 -c "import json; f = open('$dfile'); rf=f.read(); f.close(); previousd = json.loads(rf); f = open('$dfile', 'w'); f.write(json.dumps(previousd + [{'date': '`date`', 'desc': '$description'}])); f.close();"
-    cat $dfile | jq 1>&2
+    cat $dfile | jq ".[-1]" 1>&2
   fi
 }
 
 # last folder description
-function lastd {
+function alld {
   dfile="$DNAME"
   if [ -e $dfile ]
   then
-    cat $dfile | jq ".[-1]" 1>&2
+    cat $dfile | jq 1>&2
   else
     echo "No Description" 1>&2
   fi
 }
+
+alias ad="alld"
 
 # Copy to clipboard
 function cl {
