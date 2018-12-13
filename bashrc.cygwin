@@ -1,0 +1,29 @@
+[[ "$-" != *i* ]] && return
+[[ -s /home/Tamu/.autojump/etc/profile.d/autojump.sh ]] && source /home/Tamu/.autojump/etc/profile.d/autojump.sh
+
+alias l="ls -l"
+alias ll="ls -l"
+alias lll="ls -l"
+
+alias g="git"
+alias g="git"
+alias gco="git checkout"
+alias gch="git checkout"
+alias gcm="git commit -m"
+alias gc="git commit"
+alias ga="git add"
+alias gd="git diff"
+alias gl="git log --graph"
+alias gs="git status"
+
+function hlog {
+  git log --date-order --all --graph --format="%C(green)%h %Creset%C(yellow)%an%Creset %C(blue bold)%ar%Creset %C(red bold)%d%Creset %s"
+}
+
+alias hl="hlog"
+
+export LC_ALL=en_US.utf8
+
+# http://bashrcgenerator.com/
+export PS1="\[\033[38;5;39m\]\t\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]\[\033[38;5;189m\]\u\[$(tput sgr0)\]\[\033[38;5;15m\]@\[$(tput sgr0)\]\[\033[38;5;13m\]\h\[$(tput sgr0)\]\[\033[38;5;15m\]:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]:\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]"
+
