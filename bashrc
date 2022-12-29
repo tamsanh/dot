@@ -9,16 +9,19 @@ alias lll="ls -l"
 
 # git
 alias g="git"
+alias gr="git reset"
 alias gg="git grep"
 alias gpo="git push origin"
-alias gco="git checkout"
 alias gch="git checkout"
 alias gcm="git commit -m"
 alias gc="git commit"
+alias gca="git commit --amend"
 alias ga="git add"
 alias gd="git diff"
 alias gs="git status"
-alias gl="git pull origin"
+alias gpl="git pull origin"
+alias gst="git stash"
+alias gsp="git stash pop"
 
 function hlog {
   git log --date-order --all --graph --format="%C(green)%h %Creset%C(yellow)%an%Creset %C(blue bold)%ar%Creset %C(red bold)%d%Creset %s" $@
@@ -26,17 +29,24 @@ function hlog {
 
 alias hl="hlog"
 
-export LANG=en_US.UTF-8
-export LC_CTYPE="en_US.UTF-8"
-export LC_NUMERIC="en_US.UTF-8"
-export LC_TIME="en_US.UTF-8"
-export LC_COLLATE="en_US.UTF-8"
-export LC_MONETARY="en_US.UTF-8"
-export LC_MESSAGES="en_US.UTF-8"
-export LC_PAPER="en_US.UTF-8"
-export LC_NAME="en_US.UTF-8"
-export LC_ADDRESS="en_US.UTF-8"
-export LC_TELEPHONE="en_US.UTF-8"
-export LC_MEASUREMENT="en_US.UTF-8"
-export LC_IDENTIFICATION="en_US.UTF-8"
-export LC_ALL=
+# thefuck
+eval $(thefuck --alias)
+alias lol="fuck -y"
+
+# fix mac repeat keys
+# defaults write -g ApplePressAndHoldEnabled -bool false
+
+# export LANG=en_US.UTF-8
+# export LC_CTYPE="en_US.UTF-8"
+# export LC_NUMERIC="en_US.UTF-8"
+# export LC_TIME="en_US.UTF-8"
+# export LC_COLLATE="en_US.UTF-8"
+# export LC_MONETARY="en_US.UTF-8"
+# export LC_MESSAGES="en_US.UTF-8"
+# export LC_PAPER="en_US.UTF-8"
+# export LC_NAME="en_US.UTF-8"
+# export LC_ADDRESS="en_US.UTF-8"
+# export LC_TELEPHONE="en_US.UTF-8"
+# export LC_MEASUREMENT="en_US.UTF-8"
+# export LC_IDENTIFICATION="en_US.UTF-8"
+# export LC_ALL=
