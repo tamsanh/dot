@@ -23,12 +23,18 @@ alias gpl="git pull origin"
 alias gst="git stash"
 alias gsp="git stash pop"
 
+# Open Pull Requests after creating new remote branches
 # https://tighten.com/insights/open-github-pull-request-from-terminal/
 function gpr() {
   github_url=`git remote -v | awk '/fetch/{print $2}' | sed -Ee 's#(git@|git://)#https://#' -e 's@com:@com/@' -e 's%\.git$%%' | awk '/github/'`;
   branch_name=`git symbolic-ref HEAD | cut -d"/" -f 3,4`;
   pr_url=$github_url"/compare/main..."$branch_name
   open $pr_url;
+}
+
+# Generate git ignore files
+function gi {
+  curl https://www.toptal.com/developers/gitignore/api/$1
 }
 
 function hlog {
@@ -44,17 +50,60 @@ alias lol="fuck -y"
 # fix mac repeat keys
 # defaults write -g ApplePressAndHoldEnabled -bool false
 
-# export LANG=en_US.UTF-8
-# export LC_CTYPE="en_US.UTF-8"
-# export LC_NUMERIC="en_US.UTF-8"
-# export LC_TIME="en_US.UTF-8"
-# export LC_COLLATE="en_US.UTF-8"
-# export LC_MONETARY="en_US.UTF-8"
-# export LC_MESSAGES="en_US.UTF-8"
-# export LC_PAPER="en_US.UTF-8"
-# export LC_NAME="en_US.UTF-8"
-# export LC_ADDRESS="en_US.UTF-8"
-# export LC_TELEPHONE="en_US.UTF-8"
-# export LC_MEASUREMENT="en_US.UTF-8"
-# export LC_IDENTIFICATION="en_US.UTF-8"
-# export LC_ALL=
+alias imi="iex -S mix"
+
+alias gw="./gradlew"
+
+# Less with colors
+alias lr="less -R"
+
+# Paste buffer into jq
+alias pbj="pbpaste | jq"
+
+# View a json blob in the paste buffer using jq
+alias pbjl="pbpaste | jq -C | less -R"
+
+# Format an unformatted blob in the json buffer
+alias pbjc="pbpaste | jq | pbcopy"
+
+# Convert a pascalcase json blob into a snakec ase json blob
+function pascal_to_snake {
+    cat - | python -c """
+from typing import Dict, Any
+
+from string import ascii_uppercase
+
+_upper_chars = set(ascii_uppercase)
+
+
+def _pascal_to_snake(pascal_case: str) -> str:
+    out = [pascal_case[0]]
+    prev_cap = False
+    for c in pascal_case[1:]:
+        if c in _upper_chars and not prev_cap:
+            out.append('_')
+            prev_cap = True
+        if c not in _upper_chars:
+            prev_cap = False
+        out.append(c)
+    return ''.join(out).lower()
+
+
+def pascal_dict_to_snake_dict(d: Dict[str, Any]) -> Dict[str, Any]:
+    def _handle_value(value):
+        if type(value) is dict:
+            return pascal_dict_to_snake_dict(value)
+        elif type(value) is list:
+            return [_handle_value(val) for val in value]
+        return value
+
+    return {_pascal_to_snake(k): _handle_value(v) for k, v in d.items()}
+
+if __name__ == '__main__':
+    import sys
+    import json
+    data = sys.stdin.read()
+    d = json.loads(data)
+    print(json.dumps(pascal_dict_to_snake_dict(d), indent=2))
+"""
+}
