@@ -23,6 +23,14 @@ alias gpl="git pull origin"
 alias gst="git stash"
 alias gsp="git stash pop"
 
+# https://tighten.com/insights/open-github-pull-request-from-terminal/
+function gpr() {
+  github_url=`git remote -v | awk '/fetch/{print $2}' | sed -Ee 's#(git@|git://)#https://#' -e 's@com:@com/@' -e 's%\.git$%%' | awk '/github/'`;
+  branch_name=`git symbolic-ref HEAD | cut -d"/" -f 3,4`;
+  pr_url=$github_url"/compare/main..."$branch_name
+  open $pr_url;
+}
+
 function hlog {
   git log --date-order --all --graph --format="%C(green)%h %Creset%C(yellow)%an%Creset %C(blue bold)%ar%Creset %C(red bold)%d%Creset %s" $@
 }
