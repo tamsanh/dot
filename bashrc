@@ -52,13 +52,6 @@ else
 	alias lol="echo 'please install 'thefuck'"
 fi
 
-# fix mac repeat keys
-# defaults write -g ApplePressAndHoldEnabled -bool false
-
-alias imi="iex -S mix"
-
-alias gw="./gradlew"
-
 # Less with colors
 alias lr="less -R"
 
@@ -70,45 +63,3 @@ alias pbjl="pbpaste | jq -C | less -R"
 
 # Format an unformatted blob in the json buffer
 alias pbjc="pbpaste | jq | pbcopy"
-
-# Convert a pascalcase json blob into a snakec ase json blob
-function pascal_to_snake {
-	cat - | python -c """
-from typing import Dict, Any
-
-from string import ascii_uppercase
-
-_upper_chars = set(ascii_uppercase)
-
-
-def _pascal_to_snake(pascal_case: str) -> str:
-    out = [pascal_case[0]]
-    prev_cap = False
-    for c in pascal_case[1:]:
-        if c in _upper_chars and not prev_cap:
-            out.append('_')
-            prev_cap = True
-        if c not in _upper_chars:
-            prev_cap = False
-        out.append(c)
-    return ''.join(out).lower()
-
-
-def pascal_dict_to_snake_dict(d: Dict[str, Any]) -> Dict[str, Any]:
-    def _handle_value(value):
-        if type(value) is dict:
-            return pascal_dict_to_snake_dict(value)
-        elif type(value) is list:
-            return [_handle_value(val) for val in value]
-        return value
-
-    return {_pascal_to_snake(k): _handle_value(v) for k, v in d.items()}
-
-if __name__ == '__main__':
-    import sys
-    import json
-    data = sys.stdin.read()
-    d = json.loads(data)
-    print(json.dumps(pascal_dict_to_snake_dict(d), indent=2))
-"""
-}
