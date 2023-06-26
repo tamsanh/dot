@@ -14,9 +14,12 @@ ROOT_DIR=$(
 
 mkdir -p ${HOME}/.config
 
-# If nvim already exists and nvim is not a symlink
+# Move the old nvim if it exists and isn't a symlink
 if [[ -e ${HOME}/.config/nvim && ! -L ${HOME}/.config/nvim ]]; then
 	mv ${HOME}/.config/nvim{,.bak}
 fi
 
-ln -s ${ROOT_DIR}/nvim ${HOME}/.config/nvim
+# Ignore symlink creation if nvim already is symlinked
+if [[ ! -e ${HOME}/.config/nvim && -L ${HOME}/.config/nvim ]]; then {
+  ln -s ${ROOT_DIR}/nvim ${HOME}/.config/nvim
+}
