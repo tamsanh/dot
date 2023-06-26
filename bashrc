@@ -49,16 +49,16 @@ if [ $? -e 0 ]; then
 	eval $(thefuck --alias)
 	alias lol="fuck -y"
 else
-	alias lol="echo 'please install 'thefuck'"
+	alias lol="echo please install thefuck"
 fi
 
-# Less with colors
 alias lr="less -R"
+# LESS with color
 
 # Paste buffer into jq
 alias pbj="pbpaste | jq"
 
-# View a json blob in the paste buffer using jq
+# View a json blob in the paste buffer using jq in color
 alias pbjl="pbpaste | jq -C | less -R"
 
 # Format an unformatted blob in the json buffer
