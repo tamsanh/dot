@@ -5,40 +5,46 @@ local t = os.date("*t")
 local isDay = 6 <= t.hour and t.hour < 19
 
 local daySchemes = {
-  "zellner",
   "delek",
   "morning",
   "peachpuff",
   "shine",
   "tokyonight-day",
+  "zellner",
 }
 
 local nightSchemes = {
-  "torte",
-  "tokyonight-storm",
-  "tokyonight-night",
-  "tokyonight-moon",
-  "tokyonight",
-  "slate",
-  "ron",
-  "quiet",
-  "pablo",
-  "murphy",
-  "lunaperche",
-  "koehler",
-  "industry",
-  "habamax",
-  "evening",
-  "elflord",
-  "desert",
-  "default",
-  "darkblue",
   "blue",
+  "catppuccin",
+  "catppuccin-frappe",
+  "catppuccin-macchiato",
+  "catppuccin-mocha",
+  "darkblue",
+  "default",
+  "desert",
+  "elflord",
+  "evening",
+  "habamax",
+  "industry",
+  "kanagawa",
+  "koehler",
+  "lunaperche",
+  "murphy",
+  "oxocarbon",
+  "pablo",
+  "quiet",
+  "ron",
+  "slate",
+  "tokyonight",
+  "tokyonight-moon",
+  "tokyonight-night",
+  "tokyonight-storm",
+  "torte",
 }
 
 local schemesPool
 if isDay then
-  schemesPool = daySchemes
+  schemesPool = daySchemes + nightSchemes
 else
   schemesPool = nightSchemes
 end
@@ -46,8 +52,34 @@ end
 local chosenScheme = schemesPool[math.random(#schemesPool)]
 
 return {
-  "LazyVim/LazyVim",
-  opts = {
-    colorscheme = chosenScheme,
+  {
+    "ellisonleao/gruvbox.nvim",
+    lazy = false,
+  },
+  {
+    "folke/tokyonight.nvim",
+    lazy = false,
+  },
+  {
+    "rebelot/kanagawa.nvim",
+    lazy = false,
+  },
+  {
+    "nyoom-engineering/oxocarbon.nvim",
+    lazy = false,
+  },
+  {
+    "savq/melange-nvim",
+    lazy = false,
+  },
+  {
+    "catppuccin/nvim",
+    lazy = false,
+  },
+  {
+    "LazyVim/LazyVim",
+    opts = {
+      colorscheme = chosenScheme,
+    },
   },
 }
