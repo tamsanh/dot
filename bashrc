@@ -44,8 +44,13 @@ function hlog {
 alias hl="hlog"
 
 # thefuck
-eval $(thefuck --alias)
-alias lol="fuck -y"
+which thefuck >/dev/null
+if [ $? -e 0 ]; then
+	eval $(thefuck --alias)
+	alias lol="fuck -y"
+else
+	alias lol="echo 'please install 'thefuck'"
+fi
 
 # fix mac repeat keys
 # defaults write -g ApplePressAndHoldEnabled -bool false
