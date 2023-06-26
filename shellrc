@@ -60,3 +60,15 @@ alias pbjl="pbpaste | jq -C | lc"
 
 # Format an unformatted blob in the copy buffer
 alias pbjc="pbpaste | jq | pbcopy"
+
+# Easy uuid creation
+function uuid {
+    python -c """
+from uuid import uuid4
+import sys
+id = str(uuid4())
+sys.stdout.write(id)
+sys.stderr.write(id)
+""" | pbcopy
+}
+
