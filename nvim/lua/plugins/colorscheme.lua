@@ -27,7 +27,7 @@ local nightSchemes = {
   "habamax",
   "industry",
   "kanagawa",
-  "koehler",
+  -- "koehler",
   "lunaperche",
   "murphy",
   "oxocarbon",
