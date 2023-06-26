@@ -16,7 +16,7 @@ function add_shellrc {
 
 	# Preserve original rc
 	start_header=\#\ ======\ START\ tamsanh-dot\ ======
-	stop_header=\#\ ======\ END\ tamsanh-dot\ ======
+  end_header=\#\ ======\ END\ tamsanh-dot\ ======
 
 	rc_head=$(mktemp)
 	rc_tail=$(mktemp)
@@ -26,11 +26,11 @@ function add_shellrc {
 	if [ $? -ne 0 ]; then
 		cat ${rc} >${rc_head}
 	else
-		start_loc=$(awk '/'${start_header}'/ {print FNR}' ${rc})
-		end_loc=$(awk '/'${stop_header}'/ {print FNR}' ${rc})
-		remaining_count=$(wc -l ${rc})
-		head -n ${start_dot} >${rc_head}
-		tail -n $((${line_count} - ${end_dot})) >${rc_tail}
+    start_loc=$(fgrep -n "${start_header}" ${rc} | cut -d: -f1)
+    end_loc=$(fgrep -n "${end_header}" ${rc} | cut -d: -f1)
+    line_count=$(wc -l < ${rc})
+    head -n ${start_loc} ${rc} >${rc_head}
+    tail -n $((${line_count} - ${end_loc})) ${rc} >${rc_tail}
 	fi
 
 	# Add reference
@@ -54,7 +54,7 @@ if [ \${time_since_last_check} -ge 86400 ]; then
   date +%s > ${ROOT_DIR}/last_check
 fi
 
-${stop_header}
+${end_header}
 EOF) <(cat ${rc_tail}) > ${new_rc}
 
 	# Overwrite the previous rc
