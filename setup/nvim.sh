@@ -20,6 +20,6 @@ if [[ -e ${HOME}/.config/nvim && ! -L ${HOME}/.config/nvim ]]; then
 fi
 
 # Ignore symlink creation if nvim already is symlinked
-if [[ ! -e ${HOME}/.config/nvim && -L ${HOME}/.config/nvim ]]; then {
-  ln -s ${ROOT_DIR}/nvim ${HOME}/.config/nvim
-}
+if [[ ! -e ${HOME}/.config/nvim && -L ${HOME}/.config/nvim ]]; then
+	ln -s ${ROOT_DIR}/nvim ${HOME}/.config/nvim
+fi
