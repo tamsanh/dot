@@ -42,7 +42,7 @@ alias hl="hlog"
 
 # thefuck
 which thefuck >/dev/null
-if [ $? -e 0 ]; then
+if [ $? -eq 0 ]; then
 	eval $(thefuck --alias)
 	alias lol="fuck -y"
 else
