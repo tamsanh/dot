@@ -26,19 +26,19 @@ alias gsp="git stash pop"
 # Open Pull Requests after creating new remote branches
 # https://tighten.com/insights/open-github-pull-request-from-terminal/
 function gpr() {
-  github_url=`git remote -v | awk '/fetch/{print $2}' | sed -Ee 's#(git@|git://)#https://#' -e 's@com:@com/@' -e 's%\.git$%%' | awk '/github/'`;
-  branch_name=`git symbolic-ref HEAD | cut -d"/" -f 3,4`;
-  pr_url=$github_url"/compare/main..."$branch_name
-  open $pr_url;
+	github_url=$(git remote -v | awk '/fetch/{print $2}' | sed -Ee 's#(git@|git://)#https://#' -e 's@com:@com/@' -e 's%\.git$%%' | awk '/github/')
+	branch_name=$(git symbolic-ref HEAD | cut -d"/" -f 3,4)
+	pr_url=$github_url"/compare/main..."$branch_name
+	open $pr_url
 }
 
 # Generate git ignore files
 function gi {
-  curl https://www.toptal.com/developers/gitignore/api/$1
+	curl https://www.toptal.com/developers/gitignore/api/$1
 }
 
 function hlog {
-  git log --date-order --all --graph --format="%C(green)%h %Creset%C(yellow)%an%Creset %C(blue bold)%ar%Creset %C(red bold)%d%Creset %s" $@
+	git log --date-order --all --graph --format="%C(green)%h %Creset%C(yellow)%an%Creset %C(blue bold)%ar%Creset %C(red bold)%d%Creset %s" $@
 }
 
 alias hl="hlog"
@@ -68,7 +68,7 @@ alias pbjc="pbpaste | jq | pbcopy"
 
 # Convert a pascalcase json blob into a snakec ase json blob
 function pascal_to_snake {
-    cat - | python -c """
+	cat - | python -c """
 from typing import Dict, Any
 
 from string import ascii_uppercase
