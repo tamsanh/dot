@@ -42,11 +42,11 @@ local nightSchemes = {
   -- "torte",
 }
 
-local schemesPool
+local schemesPool = nightSchemes
 if isDay then
-  schemesPool = daySchemes + nightSchemes
-else
-  schemesPool = nightSchemes
+  for I = 1, #daySchemes do
+    schemesPool[#schemesPool + 1] = daySchemes[I]
+  end
 end
 
 local chosenScheme = schemesPool[math.random(#schemesPool)]
