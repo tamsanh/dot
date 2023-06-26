@@ -6,7 +6,10 @@ CURR_DIR=$(
 	cd $(dirname $0)
 	pwd
 )
-ROOT_DIR=$(git rev-parse --show-toplevel)
+ROOT_DIR=$(
+  cd ${CURR_DIR}
+  git rev-parse --show-toplevel
+)
 
 cd ${ROOT_DIR}
 
