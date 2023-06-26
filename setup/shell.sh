@@ -41,14 +41,14 @@ ${start_header}
 
 source ${ROOT_DIR}/shellrc
 
-if [ ! -e ${ROOT_DIR}/last_check]; then
+if [ ! -e ${ROOT_DIR}/last_check ]; then
   date +%s > ${ROOT_DIR}/last_check
 fi
 
-last_check_time=\$(cat \${ROOT_DIR}/last_check)
+last_check_time=\$(cat ${ROOT_DIR}/last_check)
 curr_time=\$(date +%s)
 
-time_since_last_check=\$((\$(curr_time)-\$(last_check_time)))
+time_since_last_check=\$((\${curr_time}-\${last_check_time}))
 if [ \${time_since_last_check} -ge 86400 ]; then
   git -C ${ROOT_DIR} pull origin main > /dev/null
   date +%s > ${ROOT_DIR}/last_check
