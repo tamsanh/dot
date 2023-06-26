@@ -52,8 +52,8 @@ else
 	alias lol="echo please install thefuck"
 fi
 
-alias lr="less -R"
 # LESS with color
+alias lc="less -R"
 
 # Paste buffer into jq
 alias pbj="pbpaste | jq"
