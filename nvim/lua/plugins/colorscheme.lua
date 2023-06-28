@@ -6,8 +6,8 @@ local isDay = 6 <= t.hour and t.hour < 19
 
 local daySchemes = {
   "blue",
-  "delek",
-  "morning",
+  -- "delek",
+  -- "morning",
   "peachpuff",
   "shine",
   "tokyonight-day",
@@ -32,7 +32,7 @@ local nightSchemes = {
   "murphy",
   "oxocarbon",
   "pablo",
-  "quiet",
+  -- "quiet",
   "ron",
   "slate",
   "tokyonight",
