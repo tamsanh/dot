@@ -78,3 +78,12 @@ function awsip {
     aws ec2 describe-instances --filters "Name=tag:Name,Values=${instance_name}" | jq -r '.Reservations[0].Instances[0].PublicIpAddress'
 }
 
+# Editing shortcuts
+alias v="nvim"
+alias s="pushd ~/code/scratch >/dev/null && v && popd >/dev/null"
+alias a="pushd ~/.config/tamsanh-dot >/dev/null && v && popd >/dev/null"
+
+# Start venv automatically if we are in a nvim session
+if [[ ! -z $MYVIMRC && -d venv ]]; then
+  source venv/bin/activate
+fi
