@@ -83,8 +83,14 @@ alias v="nvim"
 alias s="pushd ~/code/scratch >/dev/null && v && popd >/dev/null"
 alias a="pushd ~/.config/tamsanh-dot >/dev/null && v && popd >/dev/null"
 
-# Start venv automatically if we are in a nvim session
-# and if we have not strated a virtualenv ven already
-if [[ ! -z $MYVIMRC && -d venv && -z $VIRTUAL_ENV ]]; then
-  source venv/bin/activate
+# Start venv automatically
+if [[ -d venv && ! -z $MYVIMRC ]]; then
+  # If a venv exists and we are in a nvim session
+  if [[ -z $VIRTUAL_ENV || ! -z $TMUX ]]; then
+    # As long as we are not in a VIRTUAL_ENV already
+    # or we are in a tmux session (because tmux overwrites the parent shell settings)
+    VIRTUAL_ENV_DISABLE_PROMPT=1 source venv/bin/activate
+    export PS1="[V] $PS1"
+  fi
 fi
+

@@ -8,3 +8,4 @@ cd ${CURR_DIR}
 
 ./shell.sh
 ./nvim.sh
+./tmux.sh
