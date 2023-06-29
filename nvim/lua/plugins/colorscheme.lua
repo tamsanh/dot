@@ -19,7 +19,7 @@ local nightSchemes = {
   "catppuccin-frappe",
   "catppuccin-macchiato",
   "catppuccin-mocha",
-  "darkblue",
+  -- "darkblue",
   -- "default",
   "desert",
   "elflord",
