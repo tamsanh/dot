@@ -29,7 +29,7 @@ function add_shellrc {
     start_loc=$(fgrep -n "${start_header}" ${rc} | cut -d: -f1)
     end_loc=$(fgrep -n "${end_header}" ${rc} | cut -d: -f1)
     line_count=$(wc -l < ${rc})
-    head -n ${start_loc} ${rc} >${rc_head}
+    head -n $((${start_loc}-1)) ${rc} >${rc_head}
     tail -n $((${line_count} - ${end_loc})) ${rc} >${rc_tail}
 	fi
 
