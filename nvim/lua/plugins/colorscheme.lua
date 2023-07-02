@@ -58,30 +58,22 @@ end
 local chosenScheme = schemesPool[math.random(#schemesPool)]
 
 return {
-  {
-    "ellisonleao/gruvbox.nvim",
-    lazy = false,
-  },
-  {
-    "folke/tokyonight.nvim",
-    lazy = false,
-  },
-  {
-    "rebelot/kanagawa.nvim",
-    lazy = false,
-  },
-  {
-    "nyoom-engineering/oxocarbon.nvim",
-    lazy = false,
-  },
-  {
-    "savq/melange-nvim",
-    lazy = false,
-  },
-  {
-    "catppuccin/nvim",
-    lazy = false,
-  },
+  { "EdenEast/nightfox.nvim", lazy = false },
+  { "bluz71/vim-nightfly-colors", lazy = false },
+  { "catppuccin/nvim", lazy = false },
+  { "dracula/vim", lazy = false },
+  { "ellisonleao/gruvbox.nvim", lazy = false },
+  { "fenetikm/falcon", lazy = false },
+  { "folke/tokyonight.nvim", lazy = false },
+  { "marko-cerovac/material.nvim", lazy = false },
+  { "mhartington/oceanic-next", lazy = false },
+  { "nyoom-engineering/oxocarbon.nvim", lazy = false },
+  { "projekt0n/github-nvim-theme", lazy = false },
+  { "rebelot/kanagawa.nvim", lazy = false },
+  { "sainnhe/edge", lazy = false },
+  { "sainnhe/everforest", lazy = false },
+  { "savq/melange-nvim", lazy = false },
+  { "shaunsingh/nord.nvim", lazy = false },
   {
     "LazyVim/LazyVim",
     opts = {
