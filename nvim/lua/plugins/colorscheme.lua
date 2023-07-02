@@ -5,18 +5,28 @@ local t = os.date("*t")
 local isDay = 6 <= t.hour and t.hour < 19
 
 local daySchemes = {
+  "OceanNextLight",
   "blue",
   "catppuccin-latte",
+  "dawnfox",
+  "dayfox",
   -- "delek", --
   "kanagawa-lotus",
+  "material",
+  "material-lighter",
+  "material-oceanic",
   -- "morning", --
+  "nord",
+  "nordfox",
   "peachpuff",
   "shine",
+  "terafox",
   "tokyonight-day",
   "zellner",
 }
 
 local nightSchemes = {
+  "OceanNext",
   "catppuccin",
   "catppuccin-frappe",
   "catppuccin-macchiato",
@@ -24,8 +34,15 @@ local nightSchemes = {
   -- "darkblue", --
   -- "default", --
   "desert",
+  "dracula",
+  "duskfox",
+  "edge",
   "elflord",
   "evening",
+  "everforest",
+  "falcon",
+  "github_dark_tritanopia",
+  "github_dimmed",
   "gruvbox",
   "habamax",
   "industry",
@@ -34,8 +51,13 @@ local nightSchemes = {
   "kanagawa-wave",
   -- "koehler", --
   "lunaperche",
+  "material-darker",
+  "material-deep-ocean",
+  "material-palenight",
   "melange",
   "murphy",
+  "nightfly",
+  "nightfox",
   "oxocarbon",
   "pablo",
   -- "quiet", --
