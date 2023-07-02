@@ -6,8 +6,10 @@ local isDay = 6 <= t.hour and t.hour < 19
 
 local daySchemes = {
   "blue",
-  -- "delek",
-  -- "morning",
+  "catppuccin-latte",
+  -- "delek", --
+  "kanagawa-lotus",
+  -- "morning", --
   "peachpuff",
   "shine",
   "tokyonight-day",
@@ -19,27 +21,31 @@ local nightSchemes = {
   "catppuccin-frappe",
   "catppuccin-macchiato",
   "catppuccin-mocha",
-  -- "darkblue",
-  -- "default",
+  -- "darkblue", --
+  -- "default", --
   "desert",
   "elflord",
   "evening",
+  "gruvbox",
   "habamax",
   "industry",
   "kanagawa",
-  -- "koehler",
+  "kanagawa-dragon",
+  "kanagawa-wave",
+  -- "koehler", --
   "lunaperche",
+  "melange",
   "murphy",
   "oxocarbon",
   "pablo",
-  -- "quiet",
+  -- "quiet", --
   "ron",
   "slate",
   "tokyonight",
   "tokyonight-moon",
   "tokyonight-night",
   "tokyonight-storm",
-  -- "torte",
+  -- "torte", --
 }
 
 local schemesPool = nightSchemes
