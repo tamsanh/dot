@@ -37,20 +37,20 @@ local nightSchemes = {
   "dracula",
   "duskfox",
   "edge",
-  "elflord",
-  "evening",
+  -- "elflord", --
+  -- "evening", --
   "everforest",
   "falcon",
   "github_dark_tritanopia",
   "github_dimmed",
   "gruvbox",
-  "habamax",
+  -- "habamax", --
   "industry",
   "kanagawa",
   "kanagawa-dragon",
   "kanagawa-wave",
   -- "koehler", --
-  "lunaperche",
+  -- "lunaperche", --
   "material-darker",
   "material-deep-ocean",
   "material-palenight",
@@ -61,7 +61,7 @@ local nightSchemes = {
   "oxocarbon",
   "pablo",
   -- "quiet", --
-  "ron",
+  -- "ron", --
   "slate",
   "tokyonight",
   "tokyonight-moon",
