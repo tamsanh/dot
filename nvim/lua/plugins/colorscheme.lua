@@ -5,7 +5,7 @@ local t = os.date("*t")
 local isDay = 6 <= t.hour and t.hour < 19
 
 local daySchemes = {
-  "OceanNextLight",
+  "OceanicNextLight",
   "blue",
   "catppuccin-latte",
   "dawnfox",
@@ -26,7 +26,7 @@ local daySchemes = {
 }
 
 local nightSchemes = {
-  "OceanNext",
+  "OceanicNext",
   "catppuccin",
   "catppuccin-frappe",
   "catppuccin-macchiato",
