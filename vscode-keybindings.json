@@ -1,0 +1,177 @@
+// Place your key bindings in this file to override the defaultsauto[]
+[
+  {
+    "key": "cmd+enter",
+    "command": "workbench.action.toggleMaximizeEditorGroup",
+    "when": "editorFocus"
+  },
+  {
+    "key": "cmd+h",
+    "command": "workbench.action.navigateLeft",
+    "when": "editorFocus"
+  },
+  {
+    "key": "cmd+j",
+    "command": "workbench.action.navigateDown",
+    "when": "editorFocus"
+  },
+  {
+    "key": "cmd+k",
+    "command": "workbench.action.navigateUp",
+    "when": "editorFocus"
+  },
+  {
+    "key": "cmd+l",
+    "command": "workbench.action.navigateRight",
+    "when": "editorFocus || sideBarFocus"
+  },
+  {
+    "key": "cmd+1",
+    "command": "workbench.action.closeSidebar",
+    "when": "activeViewlet == 'workbench.view.explorer' && sideBarFocus"
+  },
+  {
+    "key": "cmd+1",
+    "command": "workbench.explorer.fileView.focus",
+    "when": "!(activeViewlet == 'workbench.view.explorer' && sideBarFocus)"
+  },
+  {
+    "key": "cmd+2",
+    "command": "workbench.action.closeSidebar",
+    "when": "activeViewlet == 'workbench.view.search' && sideBarFocus"
+  },
+  {
+    "key": "cmd+2",
+    "command": "workbench.view.search.focus",
+    "when": "!(activeViewlet == 'workbench.view.search' && sideBarFocus)"
+  },
+  {
+    "key": "cmd+3",
+    "command": "workbench.action.closeSidebar",
+    "when": "activeViewlet == 'workbench.view.scm' && sideBarFocus"
+  },
+  {
+    "key": "cmd+3",
+    "command": "workbench.view.scm",
+    "when": "!(activeViewlet == 'workbench.view.scm' && sideBarFocus)"
+  },
+  {
+    "key": "cmd+4",
+    "command": "workbench.action.closeSidebar",
+    "when": "(activeViewlet == 'workbench.view.debug' && sideBarFocus)"
+  },
+  {
+    "key": "cmd+4",
+    "command": "workbench.view.debug",
+    "when": "!(activeViewlet == 'workbench.view.debug' && sideBarFocus)"
+  },
+  {
+    "key": "cmd+5",
+    "command": "workbench.action.closeSidebar",
+    "when": "activeViewlet == 'workbench.view.extension.todo-tree-container' && sideBarFocus"
+  },
+  {
+    "key": "cmd+5",
+    "command": "workbench.view.extension.todo-tree-container",
+    "when": "!(activeViewlet == 'workbench.view.extension.todo-tree-container' && sideBarFocus)"
+  },
+  {
+    "key": "ctrl+1",
+    "command": "renameFile",
+    "when": "explorerViewletFocus"
+  },
+  {
+    "key": "ctrl+1",
+    "command": "editor.action.rename",
+    "when": "editorHasRenameProvider && editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "escape",
+    "command": "workbench.action.focusActiveEditorGroup",
+    "when": "sideBarFocus"
+  },
+  {
+    "key": "cmd+d",
+    "command": "workbench.action.terminal.split",
+    "when": "terminalFocus"
+  },
+  {
+    "key": "cmd+l",
+    "command": "workbench.action.terminal.focusNextPane",
+    "when": "terminalFocus"
+  },
+  {
+    "key": "cmd+h",
+    "command": "workbench.action.terminal.focusPreviousPane",
+    "when": "terminalFocus"
+  },
+  {
+    "key": "cmd+b",
+    "command": "editor.action.revealDefinition",
+    "when": "editorFocus"
+  },
+  {
+    "key": "ctrl+tab",
+    "command": "workbench.action.terminal.focusNext",
+    "when": "terminalFocus"
+  },
+  {
+    "key": "ctrl+shift+tab",
+    "command": "workbench.action.terminal.focusPrevious",
+    "when": "terminalFocus"
+  },
+  {
+    "key": "cmd+t",
+    "command": "workbench.action.terminal.new",
+    "when": "terminalFocus"
+  },
+  {
+    "key": "cmd+n",
+    "command": "workbench.action.terminal.new",
+    "when": "terminalFocus"
+  },
+  {
+    "key": "f2",
+    "command": "-editor.action.rename",
+    "when": "editorHasRenameProvider && editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "alt+enter",
+    "command": "-testing.editFocusedTest",
+    "when": "focusedView == 'workbench.view.testing'"
+  },
+  {
+    "key": "alt+enter",
+    "command": "-jupyter.runcurrentcellandaddbelow",
+    "when": "editorTextFocus && jupyter.hascodecells && !editorHasSelection && !notebookEditorFocused"
+  },
+  {
+    "key": "alt+enter",
+    "command": "-editor.action.selectAllMatches",
+    "when": "editorFocus && findWidgetVisible"
+  },
+  {
+    "key": "alt+enter",
+    "command": "-debug.openBreakpointToSide",
+    "when": "breakpointsFocused"
+  },
+  {
+    "key": "alt+enter",
+    "command": "-notebook.cell.executeAndInsertBelow",
+    "when": "notebookCellListFocused && notebookCellType == 'markup' || notebookCellListFocused && notebookMissingKernelExtension && !notebookCellExecuting && notebookCellType == 'code' || notebookCellListFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelCount > 0 || notebookCellListFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelSourceCount > 0"
+  },
+  {
+    "key": "alt+enter",
+    "command": "editor.action.quickFix",
+    "when": "editorHasCodeActionsProvider && editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "cmd+r",
+    "command": "workbench.action.terminal.sendSequence",
+    "args": {
+      "text": "!!\n\n"
+    },
+    "when": "terminalFocus"
+  }
+]
+
