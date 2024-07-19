@@ -26,6 +26,10 @@
     "when": "editorFocus || sideBarFocus"
   },
   {
+    "key": "cmd+0",
+    "command": "workbench.action.focusActiveEditorGroup"
+  },
+  {
     "key": "cmd+1",
     "command": "workbench.action.closeSidebar",
     "when": "activeViewlet == 'workbench.view.explorer' && sideBarFocus"
@@ -174,4 +178,3 @@
     "when": "terminalFocus"
   }
 ]
-
