@@ -1,29 +1,45 @@
 // Place your key bindings in this file to override the defaultsauto[]
 [
   {
+    "key": "cmd+shift+w",
+    "command": "workbench.action.closeEditorsInGroup",
+    "when": "groupEditorsCount > 0 && editorFocus"
+  },
+  {
+    "key": "cmd+n",
+    "command": "explorer.newFile",
+    "when": "explorerViewletFocus"
+  },
+  {
+    "key": "enter",
+    "command": "explorer.openAndPassFocus",
+    "when": "explorerViewletFocus"
+  },
+  {
     "key": "cmd+enter",
     "command": "workbench.action.toggleMaximizeEditorGroup",
     "when": "editorFocus"
   },
   {
+    "key": "cmd+enter",
+    "command": "workbench.action.toggleMaximizedPanel",
+    "when": "terminalFocus"
+  },
+  {
     "key": "cmd+h",
-    "command": "workbench.action.navigateLeft",
-    "when": "editorFocus"
+    "command": "workbench.action.navigateLeft"
   },
   {
     "key": "cmd+j",
-    "command": "workbench.action.navigateDown",
-    "when": "editorFocus"
+    "command": "workbench.action.navigateDown"
   },
   {
     "key": "cmd+k",
-    "command": "workbench.action.navigateUp",
-    "when": "editorFocus"
+    "command": "workbench.action.navigateUp"
   },
   {
     "key": "cmd+l",
-    "command": "workbench.action.navigateRight",
-    "when": "editorFocus || sideBarFocus"
+    "command": "workbench.action.navigateRight"
   },
   {
     "key": "cmd+0",
@@ -40,42 +56,42 @@
     "when": "!(activeViewlet == 'workbench.view.explorer' && sideBarFocus)"
   },
   {
-    "key": "cmd+2",
+    "key": "cmd+5",
     "command": "workbench.action.closeSidebar",
     "when": "activeViewlet == 'workbench.view.search' && sideBarFocus"
   },
   {
-    "key": "cmd+2",
+    "key": "cmd+5",
     "command": "workbench.view.search.focus",
     "when": "!(activeViewlet == 'workbench.view.search' && sideBarFocus)"
   },
   {
-    "key": "cmd+3",
+    "key": "cmd+4",
     "command": "workbench.action.closeSidebar",
     "when": "activeViewlet == 'workbench.view.scm' && sideBarFocus"
   },
   {
-    "key": "cmd+3",
+    "key": "cmd+4",
     "command": "workbench.view.scm",
     "when": "!(activeViewlet == 'workbench.view.scm' && sideBarFocus)"
   },
   {
-    "key": "cmd+4",
+    "key": "cmd+2",
     "command": "workbench.action.closeSidebar",
     "when": "(activeViewlet == 'workbench.view.debug' && sideBarFocus)"
   },
   {
-    "key": "cmd+4",
+    "key": "cmd+2",
     "command": "workbench.view.debug",
     "when": "!(activeViewlet == 'workbench.view.debug' && sideBarFocus)"
   },
   {
-    "key": "cmd+5",
+    "key": "cmd+3",
     "command": "workbench.action.closeSidebar",
     "when": "activeViewlet == 'workbench.view.extension.todo-tree-container' && sideBarFocus"
   },
   {
-    "key": "cmd+5",
+    "key": "cmd+3",
     "command": "workbench.view.extension.todo-tree-container",
     "when": "!(activeViewlet == 'workbench.view.extension.todo-tree-container' && sideBarFocus)"
   },
@@ -88,6 +104,10 @@
     "key": "ctrl+1",
     "command": "editor.action.rename",
     "when": "editorHasRenameProvider && editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "ctrl+2",
+    "command": "workbench.action.debug.restart"
   },
   {
     "key": "escape",
@@ -176,5 +196,16 @@
       "text": "!!\n\n"
     },
     "when": "terminalFocus"
+  },
+  {
+    "key": "cmd+d",
+    "command": "workbench.action.splitEditorRight",
+    "when": "editorFocus"
+  },
+  {
+    "key": "cmd+shift+d",
+    "command": "workbench.action.splitEditorDown",
+    "when": "editorFocus"
   }
 ]
+
