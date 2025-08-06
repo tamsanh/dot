@@ -7,6 +7,8 @@ return {
       pyright = {},
       jdtls = {},
       tsserver = {},
+      svelte = {},
+      angularls = {},
     },
   },
 }

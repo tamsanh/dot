@@ -3,6 +3,8 @@
 return {
   "ggandor/leap.nvim",
   config = function(_, _)
+    vim.keymap.del({ "n", "x", "o" }, "f")
+    vim.keymap.del({ "n", "x", "o" }, "F")
     vim.keymap.del({ "n", "x", "o" }, "s")
     vim.keymap.del({ "n", "x", "o" }, "S")
   end,

@@ -6,10 +6,11 @@ local isDay = 6 <= t.hour and t.hour < 19
 
 local daySchemes = {
   "OceanicNextLight",
-  "blue",
+  -- "blue", --
   "catppuccin-latte",
   "dawnfox",
   "dayfox",
+  "edge",
   -- "delek", --
   "kanagawa-lotus",
   "material",
@@ -18,11 +19,11 @@ local daySchemes = {
   -- "morning", --
   "nord",
   "nordfox",
-  "peachpuff",
-  "shine",
+  -- "peachpuff", --
+  -- "shine", --
   "terafox",
   "tokyonight-day",
-  "zellner",
+  -- "zellner", --
 }
 
 local nightSchemes = {
@@ -33,19 +34,18 @@ local nightSchemes = {
   "catppuccin-mocha",
   -- "darkblue", --
   -- "default", --
-  "desert",
+  -- "desert", --
   "dracula",
   "duskfox",
-  "edge",
   -- "elflord", --
   -- "evening", --
   "everforest",
   "falcon",
-  "github_dark_tritanopia",
-  "github_dimmed",
+  -- "github_dark_tritanopia", --
+  "github_dark_dimmed",
   "gruvbox",
   -- "habamax", --
-  "industry",
+  -- "industry", --
   "kanagawa",
   "kanagawa-dragon",
   "kanagawa-wave",
@@ -62,7 +62,7 @@ local nightSchemes = {
   "pablo",
   -- "quiet", --
   -- "ron", --
-  "slate",
+  -- "slate", --
   "tokyonight",
   "tokyonight-moon",
   "tokyonight-night",

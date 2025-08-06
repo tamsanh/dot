@@ -20,6 +20,38 @@ alias gpl="git pull origin"
 alias gst="git stash"
 alias gsp="git stash pop"
 
+
+function leet() {
+    folder=`pbpaste | cut -d/ -f 5`
+    mkdir $folder
+    echo "# `pbpaste`" > $folder/__init__.py
+    echo "# " >> $folder/__init__.py
+    echo "from typing import Optional, List" >> $folder/__init__.py
+    echo "from neetcode import null, true, false, will_fail" >> $folder/__init__.py
+    echo "from neetcode import TreeNode, leets, leet_obj, parse_raw_examples" >> $folder/__init__.py
+
+    echo "" >> $folder/__init__.py
+    echo "" >> $folder/__init__.py
+    echo "" >> $folder/__init__.py
+    echo '        pass' >> $folder/__init__.py
+    echo "" >> $folder/__init__.py
+    echo 'if __name__ == "__main__":' >> $folder/__init__.py
+    echo '    p = parse_raw_examples("""' >> $folder/__init__.py
+    echo '' >> $folder/__init__.py
+    echo '    """,' >> $folder/__init__.py
+    echo '    map_input_func=None,' >> $folder/__init__.py
+    echo '    map_input_keys=None,' >> $folder/__init__.py
+    echo '    map_output_func=None,' >> $folder/__init__.py
+    echo '    )' >> $folder/__init__.py
+    echo '    expects = [' >> $folder/__init__.py
+    echo '    (dict(),),' >> $folder/__init__.py
+    echo ']' >> $folder/__init__.py
+    echo '' >> $folder/__init__.py
+    echo '    leets(Solution()., p.expects)' >> $folder/__init__.py
+    echo "" >> $folder/__init__.py
+    code --reuse-window $folder/__init__.py
+}
+
 # Open Pull Requests after creating new remote branches
 # https://tighten.com/insights/open-github-pull-request-from-terminal/
 function gpr() {
@@ -68,8 +100,8 @@ from uuid import uuid4
 import sys
 id = str(uuid4())
 sys.stdout.write(id)
-sys.stderr.write(id)
-""" | pbcopy
+# sys.stderr.write(id)
+"""
 }
 
 # Get the IP address of an aws instance by name
@@ -94,3 +126,58 @@ if [[ -d venv && ! -z $MYVIMRC ]]; then
   fi
 fi
 
+alias lg="lazygit"
+
+function sunim {
+    pushd `mktemp -d`
+    yt-dlp --write-subs --sub-lang en --skip-download $1
+    cat *.en.vtt | python -c """
+import os
+import sys
+
+
+def clean_vtt(vtt_data: str):
+    out_lines = []
+
+    out_line = ''
+
+    def append_out_line():
+        nonlocal out_line, out_lines
+        if out_line:
+            out_lines.append(out_line.strip())
+        if '.' in out_line or '?' in out_line:
+            out_lines.append('\n')
+        out_line = ''
+
+    found_first = False
+    for raw_line in vtt_data.split('\n'):
+        if '-->' in raw_line:
+            found_first = True
+
+        if not found_first:
+            continue
+
+        if '-->' in raw_line:
+            append_out_line()
+            continue
+
+        clean_line = raw_line.strip().replace('\n', ' ')
+
+        out_line = f'{out_line} {clean_line}'
+
+    append_out_line()
+    return ' '.join(out_lines)
+
+
+def clean_vtt_file(file_location: str):
+    with open(file_location) as f:
+        return clean_vtt(f.read())
+
+
+if __name__ == '__main__':
+    print(clean_vtt(sys.stdin.read()))
+""" | pbcopy
+    pbpaste
+    rm *.en.vtt
+    popd
+}
