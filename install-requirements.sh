@@ -61,11 +61,13 @@ function setup_dot_python {
 echo "Start Installing dot requirements"
 echo
 echo "Setup command line tools"
+
 maybe_install aerospace
 maybe_install ghostty
-maybe_install delta git-delta
 maybe_install starship
 maybe_install bat
+
+# maybe_install delta git-delta
 
 echo
 setup_dot_python
