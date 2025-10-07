@@ -74,17 +74,6 @@ function awsip {
     aws ec2 describe-instances --filters "Name=tag:Name,Values=${instance_name}" | jq -r '.Reservations[0].Instances[0].PublicIpAddress'
 }
 
-# Start venv automatically
-if [[ -d venv && ! -z $MYVIMRC ]]; then
-  # If a venv exists and we are in a nvim session
-  if [[ -z $VIRTUAL_ENV || ! -z $TMUX ]]; then
-    # As long as we are not in a VIRTUAL_ENV already
-    # or we are in a tmux session (because tmux overwrites the parent shell settings)
-    VIRTUAL_ENV_DISABLE_PROMPT=1 source venv/bin/activate
-    export PS1="[V] $PS1"
-  fi
-fi
-
 eval "$(starship init zsh)"
 
 if [ -e ~/.zsecrets ]; then
