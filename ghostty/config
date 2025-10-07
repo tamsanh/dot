@@ -17,3 +17,5 @@ keybind = global:super+grave_accent=toggle_quick_terminal
 
 custom-shader = shaders/bloom060.glsl
 
+split-divider-color = #FFFFFF
+
