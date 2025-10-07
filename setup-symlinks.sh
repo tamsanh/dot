@@ -6,6 +6,11 @@ function uplink {
 
     full_trgt_path=`pwd`/${trgt}
 
+    if [ ! -e "${src}" ]; then
+        echo "Error: Missing ${src}"
+        return
+    fi
+
     if [ ! -e "${trgt}" ]; then
         echo "Linking ${src} to ${full_trgt_path}"
         ln -s ${src} "${trgt}"
@@ -22,9 +27,15 @@ function uplink {
 CURR_DIR=$(cd `dirname $0`; pwd)
 
 cd ~
+
+uplink $CURR_DIR/git/gitconfig .gitconfig
+
+if [ ! -e .gitconfig-private ]; then
+    cp $CURR_DIR/git/gitconfig-private .gitconfig-private
+fi
+
 uplink $CURR_DIR/aerospace/aerospace.toml .aerospace.toml
 uplink $CURR_DIR/vimrc .vimrc
-uplink $CURR_DIR/gitconfig .gitconfig
 uplink $CURR_DIR/vscode/keybindings.json "Library/Application Support/Code/User/keybindings.json"
 
 mkdir -p .config
