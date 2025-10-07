@@ -89,3 +89,67 @@ fi
 alias rotate-monitors="${DOT_DIR}/aerospace/rotate.sh"
 alias reload-monitors="${DOT_DIR}/aerospace/reload.sh"
 
+function new-makefile {
+    local $1
+    name=${1:-Makefile}
+    curl https://gist.githubusercontent.com/tamsanh/ac174f190b6089eac68249c82e372630/raw/816324567481b9503e2c4408e2bc143079839806/Makefile > $name
+}
+
+function new-react {
+    local $1
+    project=$1
+    if [[ -z $project ]];   then
+        echo "Usage: new-react PROJECT_NAME"
+        return
+    fi
+    pnpm create vite@latest ${project} --template react-ts --no-interactive
+    cd ${project}
+    pnpm install
+    git init
+    gi osx,vim,node > .gitignore
+    git add .
+    git commit -m "Initialize"
+
+    pnpm add -D @tailwindcss/vite
+    pnpm add tailwindcss
+    echo 'import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+});' > vite.config.ts
+    echo '@import "tailwindcss";' > src/index.css
+    rm src/App.css
+
+
+
+    echo '
+function App() {
+  return (
+    <>
+      <div className="text-3xl font-bold underline">
+        Vite + React + Tailwind
+      </div>
+    </>
+  );
+}
+
+export default App;
+' > src/App.tsx
+
+
+    git add .
+    git commit -m "Setup tailwind"
+
+    pnpm add -D prettier prettier-plugin-tailwindcss
+
+    echo '{
+  "plugins": ["prettier-plugin-tailwindcss"]
+}' > .prettierrc.json
+
+    pnpm exec prettier -w *
+
+    git add .
+    git commit -m "Run prettier"
+}
