@@ -16,6 +16,5 @@ keybind = cmd+shift+space=equalize_splits
 keybind = global:super+grave_accent=toggle_quick_terminal
 
 custom-shader = shaders/bloom060.glsl
-custom-shader = shaders/bloom060.glsl
 custom-shader = shaders/bloom025.glsl
 
