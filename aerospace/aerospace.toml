@@ -100,6 +100,8 @@ automatically-unhide-macos-hidden-apps = true
     alt-j = 'focus down --boundaries all-monitors-outer-frame --boundaries-action wrap-around-the-workspace'
     alt-k = 'focus up --boundaries all-monitors-outer-frame --boundaries-action wrap-around-the-workspace'
     alt-l = 'focus right --boundaries all-monitors-outer-frame --boundaries-action wrap-around-the-workspace'
+    alt-down = 'focus down --boundaries all-monitors-outer-frame --boundaries-action wrap-around-the-workspace'
+    alt-up = 'focus up --boundaries all-monitors-outer-frame --boundaries-action wrap-around-the-workspace'
     # alt-o = 'focus dfs-next --boundaries-action wrap-around-the-workspace'
     # alt-shift-o = 'focus dfs-next --boundaries-action wrap-around-the-workspace'
 
@@ -108,6 +110,8 @@ automatically-unhide-macos-hidden-apps = true
     ctrl-shift-j = 'move down --boundaries all-monitors-outer-frame'
     ctrl-shift-k = 'move up --boundaries all-monitors-outer-frame'
     ctrl-shift-l = 'move right --boundaries all-monitors-outer-frame'
+    ctrl-shift-down = 'move down --boundaries all-monitors-outer-frame'
+    ctrl-shift-up = 'move up --boundaries all-monitors-outer-frame'
     ctrl-shift-y = ['join-with left', 'mode main']
     ctrl-shift-u = ['join-with down', 'mode main']
     ctrl-shift-i = ['join-with up', 'mode main']
