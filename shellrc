@@ -20,37 +20,17 @@ alias gpl="git pull origin"
 alias gst="git stash"
 alias gsp="git stash pop"
 
-
-function leet() {
-    folder=`pbpaste | cut -d/ -f 5`
-    mkdir $folder
-    echo "# `pbpaste`" > $folder/__init__.py
-    echo "# " >> $folder/__init__.py
-    echo "from typing import Optional, List" >> $folder/__init__.py
-    echo "from neetcode import null, true, false, will_fail" >> $folder/__init__.py
-    echo "from neetcode import TreeNode, leets, leet_obj, parse_raw_examples" >> $folder/__init__.py
-
-    echo "" >> $folder/__init__.py
-    echo "" >> $folder/__init__.py
-    echo "" >> $folder/__init__.py
-    echo '        pass' >> $folder/__init__.py
-    echo "" >> $folder/__init__.py
-    echo 'if __name__ == "__main__":' >> $folder/__init__.py
-    echo '    p = parse_raw_examples("""' >> $folder/__init__.py
-    echo '' >> $folder/__init__.py
-    echo '    """,' >> $folder/__init__.py
-    echo '    map_input_func=None,' >> $folder/__init__.py
-    echo '    map_input_keys=None,' >> $folder/__init__.py
-    echo '    map_output_func=None,' >> $folder/__init__.py
-    echo '    )' >> $folder/__init__.py
-    echo '    expects = [' >> $folder/__init__.py
-    echo '    (dict(),),' >> $folder/__init__.py
-    echo ']' >> $folder/__init__.py
-    echo '' >> $folder/__init__.py
-    echo '    leets(Solution()., p.expects)' >> $folder/__init__.py
-    echo "" >> $folder/__init__.py
-    code --reuse-window $folder/__init__.py
+function hlog {
+	git log --date-order --all --graph --format="%C(green)%h %Creset%C(yellow)%an%Creset %C(blue bold)%ar%Creset %C(red bold)%d%Creset %s" $@
 }
+
+alias hl="hlog"
+
+function gi {
+    # Generate git ignore files
+	curl https://www.toptal.com/developers/gitignore/api/$1
+}
+
 
 # Open Pull Requests after creating new remote branches
 # https://tighten.com/insights/open-github-pull-request-from-terminal/
@@ -61,37 +41,8 @@ function gpr() {
 	open $pr_url
 }
 
-# Generate git ignore files
-function gi {
-	curl https://www.toptal.com/developers/gitignore/api/$1
-}
-
-function hlog {
-	git log --date-order --all --graph --format="%C(green)%h %Creset%C(yellow)%an%Creset %C(blue bold)%ar%Creset %C(red bold)%d%Creset %s" $@
-}
-
-alias hl="hlog"
-
-# thefuck
-which thefuck >/dev/null
-if [ $? -eq 0 ]; then
-	eval $(thefuck --alias)
-	alias lol="fuck -y"
-else
-	alias lol="echo please install thefuck"
-fi
-
 # LESS with color
 alias lc="less -R"
-
-# Paste buffer into jq
-alias pbj="pbpaste | jq"
-
-# View a json blob in the paste buffer using jq in color
-alias pbjl="pbpaste | jq -C | lc"
-
-# Format an unformatted blob in the copy buffer
-alias pbjc="pbpaste | jq | pbcopy"
 
 # Easy uuid creation
 function uuid {
@@ -110,11 +61,6 @@ function awsip {
     aws ec2 describe-instances --filters "Name=tag:Name,Values=${instance_name}" | jq -r '.Reservations[0].Instances[0].PublicIpAddress'
 }
 
-# Editing shortcuts
-alias v="nvim"
-alias s="pushd ~/code/scratch >/dev/null && v && popd >/dev/null"
-alias a="pushd ~/.config/tamsanh-dot >/dev/null && v && popd >/dev/null"
-
 # Start venv automatically
 if [[ -d venv && ! -z $MYVIMRC ]]; then
   # If a venv exists and we are in a nvim session
@@ -126,58 +72,3 @@ if [[ -d venv && ! -z $MYVIMRC ]]; then
   fi
 fi
 
-alias lg="lazygit"
-
-function sunim {
-    pushd `mktemp -d`
-    yt-dlp --write-subs --sub-lang en --skip-download $1
-    cat *.en.vtt | python -c """
-import os
-import sys
-
-
-def clean_vtt(vtt_data: str):
-    out_lines = []
-
-    out_line = ''
-
-    def append_out_line():
-        nonlocal out_line, out_lines
-        if out_line:
-            out_lines.append(out_line.strip())
-        if '.' in out_line or '?' in out_line:
-            out_lines.append('\n')
-        out_line = ''
-
-    found_first = False
-    for raw_line in vtt_data.split('\n'):
-        if '-->' in raw_line:
-            found_first = True
-
-        if not found_first:
-            continue
-
-        if '-->' in raw_line:
-            append_out_line()
-            continue
-
-        clean_line = raw_line.strip().replace('\n', ' ')
-
-        out_line = f'{out_line} {clean_line}'
-
-    append_out_line()
-    return ' '.join(out_lines)
-
-
-def clean_vtt_file(file_location: str):
-    with open(file_location) as f:
-        return clean_vtt(f.read())
-
-
-if __name__ == '__main__':
-    print(clean_vtt(sys.stdin.read()))
-""" | pbcopy
-    pbpaste
-    rm *.en.vtt
-    popd
-}
