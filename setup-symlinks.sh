@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CURR_DIR=$(cd `dirname $0`; pwd)
+CUR_DIR=$(cd `dirname $0`; pwd)
 
 function uplink {
     local src=$1
@@ -28,18 +28,18 @@ function uplink {
 
 function setup_git {
     echo "Setup .gitconfig"
-    uplink $CURR_DIR/git/gitconfig .gitconfig
+    uplink $CUR_DIR/git/gitconfig .gitconfig
 
     # git needs a special private file
     if [ ! -e .gitconfig-private ]; then
-        cp $CURR_DIR/git/gitconfig-private .gitconfig-private
+        cp $CUR_DIR/git/gitconfig-private .gitconfig-private
     fi
 }
 
 function setup_envvars {
     echo "Setup envvars:"
-    echo "  DOT_DIR=\"${CURR_DIR}\""
-    echo "export DOT_DIR=\"${CURR_DIR}\"" > ~/.zdotdir
+    echo "  DOT_DIR=\"${CUR_DIR}\""
+    echo "export DOT_DIR=\"${CUR_DIR}\"" > ~/.zdotdir
 }
 
 cd ~
@@ -47,16 +47,16 @@ cd ~
 setup_git
 setup_envvars
 
-uplink $CURR_DIR/aerospace/temp.aerospace.toml .aerospace.toml
-uplink $CURR_DIR/vimrc .vimrc
-uplink $CURR_DIR/vscode/keybindings.json "Library/Application Support/Code/User/keybindings.json"
+uplink $CUR_DIR/aerospace/temp.aerospace.toml .aerospace.toml
+uplink $CUR_DIR/vimrc .vimrc
+uplink $CUR_DIR/vscode/keybindings.json "Library/Application Support/Code/User/keybindings.json"
 
-uplink $CURR_DIR/shellrc .`basename ${SHELL}`rc
+uplink $CUR_DIR/shellrc .`basename ${SHELL}`rc
 
 
 mkdir -p .config
 cd .config
 
-uplink $CURR_DIR/ghostty ghostty
-uplink $CURR_DIR/starship/starship.toml starship.toml
+uplink $CUR_DIR/ghostty ghostty
+uplink $CUR_DIR/starship/starship.toml starship.toml
 
