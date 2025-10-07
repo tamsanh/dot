@@ -134,7 +134,6 @@ automatically-unhide-macos-hidden-apps = true
     alt-a = ['workspace A', 'move-mouse monitor-lazy-center']
     alt-s = ['workspace S', 'move-mouse monitor-lazy-center']
     alt-d = ['workspace D', 'move-mouse monitor-lazy-center']
-    alt-f = ['workspace F', 'move-mouse monitor-lazy-center']
 
     ctrl-shift-1 = 'move-node-to-workspace 1'
     ctrl-shift-2 = 'move-node-to-workspace 2'
@@ -149,7 +148,6 @@ automatically-unhide-macos-hidden-apps = true
     ctrl-shift-a = 'move-node-to-workspace A'
     ctrl-shift-s = 'move-node-to-workspace S'
     ctrl-shift-d = 'move-node-to-workspace D'
-    ctrl-shift-f = 'move-node-to-workspace F'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
     alt-tab = 'workspace-back-and-forth'
