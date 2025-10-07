@@ -121,27 +121,35 @@ automatically-unhide-macos-hidden-apps = true
     alt-minus = 'resize smart -50'
     alt-equal = 'resize smart +50'
 
-    # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
     alt-1 = ['workspace 1', 'move-mouse monitor-lazy-center']
     alt-2 = ['workspace 2', 'move-mouse monitor-lazy-center']
     alt-3 = ['workspace 3', 'move-mouse monitor-lazy-center']
     alt-4 = ['workspace 4', 'move-mouse monitor-lazy-center']
-    alt-5 = ['workspace 5', 'move-mouse monitor-lazy-center']
+
     alt-q = ['workspace Q', 'move-mouse monitor-lazy-center']
     alt-w = ['workspace W', 'move-mouse monitor-lazy-center']
     alt-e = ['workspace E', 'move-mouse monitor-lazy-center']
     alt-r = ['workspace R', 'move-mouse monitor-lazy-center']
 
-    # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
+    alt-a = ['workspace A', 'move-mouse monitor-lazy-center']
+    alt-s = ['workspace S', 'move-mouse monitor-lazy-center']
+    alt-d = ['workspace D', 'move-mouse monitor-lazy-center']
+    alt-f = ['workspace F', 'move-mouse monitor-lazy-center']
+
     ctrl-shift-1 = 'move-node-to-workspace 1'
     ctrl-shift-2 = 'move-node-to-workspace 2'
     ctrl-shift-3 = 'move-node-to-workspace 3'
     ctrl-shift-4 = 'move-node-to-workspace 4'
-    ctrl-shift-5 = 'move-node-to-workspace 5'
+
     ctrl-shift-q = 'move-node-to-workspace Q'
     ctrl-shift-w = 'move-node-to-workspace W'
     ctrl-shift-e = 'move-node-to-workspace E'
     ctrl-shift-r = 'move-node-to-workspace R'
+
+    ctrl-shift-a = 'move-node-to-workspace A'
+    ctrl-shift-s = 'move-node-to-workspace S'
+    ctrl-shift-d = 'move-node-to-workspace D'
+    ctrl-shift-f = 'move-node-to-workspace F'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
     alt-tab = 'workspace-back-and-forth'
