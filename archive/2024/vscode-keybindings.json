@@ -1,6 +1,11 @@
 // Place your key bindings in this file to override the defaultsauto[]
 [
   {
+    "key": "cmd+shift+r",
+    "command": "workbench.action.replaceInFiles",
+    "when": "searchViewletVisible"
+  },
+  {
     "key": "cmd+shift+w",
     "command": "workbench.action.closeEditorsInGroup",
     "when": "groupEditorsCount > 0 && editorFocus"
@@ -146,12 +151,12 @@
   {
     "key": "cmd+l",
     "command": "workbench.action.terminal.focusNextPane",
-    "when": "terminalFocus"
+    "when": "terminalFocus && !editorFocus"
   },
   {
     "key": "cmd+h",
     "command": "workbench.action.terminal.focusPreviousPane",
-    "when": "terminalFocus"
+    "when": "terminalFocus && !editorFocus"
   },
   {
     "key": "cmd+b",
@@ -232,4 +237,3 @@
     "when": "editorFocus"
   }
 ]
-
