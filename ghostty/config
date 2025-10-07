@@ -4,7 +4,7 @@ font-family = "Lilex Nerd Font Mono"
 
 macos-non-native-fullscreen=true
 
-unfocused-split-opacity = 0.9
+unfocused-split-opacity = 0.7
 
 keybind = cmd+j=goto_split:down
 keybind = cmd+h=goto_split:left
