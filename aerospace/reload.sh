@@ -16,8 +16,9 @@ monitor_files=(
 )
 
 out_file=$CUR_DIR/temp.aerospace.toml
+target_screen_file=${monitor_files[${monitor_count}]}
 
-cat $CUR_DIR/aerospace.base.toml $CUR_DIR/${monitor_files[${monitor_count}]} > $CUR_DIR/temp.aerospace.toml
+cat $CUR_DIR/aerospace.base.toml $CUR_DIR/${target_screen_file} > $CUR_DIR/temp.aerospace.toml
 
 # Reload aerospace to apply the new configuration
 aerospace reload-config
