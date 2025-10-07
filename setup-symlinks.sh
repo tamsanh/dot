@@ -48,7 +48,5 @@ uplink $CURR_DIR/shellrc .`basename ${SHELL}`rc
 mkdir -p .config
 cd .config
 
-if [ ! -e ghostty ]; then
-    ln -s $CURR_DIR/ghostty ghostty
-fi
+uplink $CURR_DIR/ghostty ghostty
 
