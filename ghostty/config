@@ -1,0 +1,21 @@
+theme = Cobalt2
+
+font-family = "Lilex Nerd Font Mono"
+
+macos-non-native-fullscreen=true
+
+unfocused-split-opacity = 0.9
+
+keybind = cmd+j=goto_split:down
+keybind = cmd+h=goto_split:left
+keybind = cmd+k=goto_split:up
+keybind = cmd+l=goto_split:right
+
+keybind = cmd+shift+enter=toggle_split_zoom
+keybind = cmd+shift+space=equalize_splits
+keybind = global:super+grave_accent=toggle_quick_terminal
+
+custom-shader = shaders/bloom060.glsl
+custom-shader = shaders/bloom060.glsl
+custom-shader = shaders/bloom025.glsl
+
