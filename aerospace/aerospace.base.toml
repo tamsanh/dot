@@ -155,15 +155,6 @@ automatically-unhide-macos-hidden-apps = true
     ctrl-shift-semicolon = 'mode service'
     alt-shift-z = ['fullscreen', 'mode main']
 
-[workspace-to-monitor-force-assignment]
-    1 = 1
-    2 = 2
-    3 = 3
-    Q = 1
-    W = 2
-    E = 3
-
-
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
 [mode.service.binding]
