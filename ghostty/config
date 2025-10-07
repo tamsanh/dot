@@ -1,5 +1,5 @@
-# theme = Cobalt2
-theme = dark:Cobalt2,light:FairyFloss
+theme = Cobalt2
+# theme = dark:Cobalt2,light:3024 Day
 
 
 font-family = "Lilex Nerd Font Mono"
@@ -12,6 +12,9 @@ keybind = cmd+j=goto_split:down
 keybind = cmd+h=goto_split:left
 keybind = cmd+k=goto_split:up
 keybind = cmd+l=goto_split:right
+
+keybind = cmd+r=text:!!\n
+keybind = shift+enter=text:\n
 
 keybind = cmd+shift+enter=toggle_split_zoom
 keybind = cmd+shift+space=equalize_splits
