@@ -43,6 +43,8 @@ uplink $CURR_DIR/aerospace/aerospace.toml .aerospace.toml
 uplink $CURR_DIR/vimrc .vimrc
 uplink $CURR_DIR/vscode/keybindings.json "Library/Application Support/Code/User/keybindings.json"
 
+uplink $CURR_DIR/shellrc .`basename ${SHELL}`rc
+
 mkdir -p .config
 cd .config
 
