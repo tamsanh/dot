@@ -1,13 +1,10 @@
 format = """
-[](#9A348E)\
-$os\
-$username\
-[](bg:#DA627D fg:#9A348E)\
+[](fg:#DA627D)\
 $directory\
-[](fg:#DA627D bg:#FCA17D)\
+[](fg:#DA627D bg:#9A348E)\
 $git_branch\
 $git_status\
-[](fg:#FCA17D bg:#86BBD8)\
+[](fg:#9A348E bg:#86BBD8)\
 $c\
 $elixir\
 $elm\
@@ -91,11 +88,11 @@ format = '[ $symbol ($version) ]($style)'
 
 [git_branch]
 symbol = ""
-style = "bg:#FCA17D"
+style = "bg:#9A348E"
 format = '[ $symbol $branch ]($style)'
 
 [git_status]
-style = "bg:#FCA17D"
+style = "bg:#9A348E"
 format = '[$all_status$ahead_behind ]($style)'
 
 [golang]
