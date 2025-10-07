@@ -64,7 +64,6 @@ automatically-unhide-macos-hidden-apps = true
 # Fallback value (if you omit the key): mode.main.binding = {}
 [mode.main.binding]
 
-
     # All possible keys:
     # - Letters.        a, b, c, ..., z
     # - Numbers.        0, 1, 2, ..., 9
@@ -119,15 +118,15 @@ automatically-unhide-macos-hidden-apps = true
     alt-equal = 'resize smart +50'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
-    alt-1 = 'workspace 1'
-    alt-2 = 'workspace 2'
-    alt-3 = 'workspace 3'
-    alt-4 = 'workspace 4'
-    alt-5 = 'workspace 5'
-    alt-q = 'workspace Q'
-    alt-w = 'workspace W'
-    alt-e = 'workspace E'
-    alt-r = 'workspace R'
+    alt-1 = ['workspace 1', 'move-mouse monitor-lazy-center']
+    alt-2 = ['workspace 2', 'move-mouse monitor-lazy-center']
+    alt-3 = ['workspace 3', 'move-mouse monitor-lazy-center']
+    alt-4 = ['workspace 4', 'move-mouse monitor-lazy-center']
+    alt-5 = ['workspace 5', 'move-mouse monitor-lazy-center']
+    alt-q = ['workspace Q', 'move-mouse monitor-lazy-center']
+    alt-w = ['workspace W', 'move-mouse monitor-lazy-center']
+    alt-e = ['workspace E', 'move-mouse monitor-lazy-center']
+    alt-r = ['workspace R', 'move-mouse monitor-lazy-center']
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
     ctrl-shift-1 = 'move-node-to-workspace 1'
@@ -153,10 +152,12 @@ automatically-unhide-macos-hidden-apps = true
     alt-shift-z = ['fullscreen', 'mode main']
 
 [workspace-to-monitor-force-assignment]
-    q = 1
-    w = 1
-    e = 1
-    r = 1
+    1 = 1
+    2 = 2
+    3 = 3
+    Q = 1
+    W = 2
+    E = 3
 
 
 # 'service' binding mode declaration.
