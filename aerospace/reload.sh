@@ -2,14 +2,14 @@
 
 set -x
 
-CUR_DIR=$(cd `dirname $0`; pwd)
+CUR_DIR=$(cd `dirname $(readlink -f $0)`; pwd)
 
 
 # Check the number of connected monitors
 monitor_count=$(aerospace list-monitors | wc -l)
 
 monitor_files=(
-    "never.toml"
+    "NEVER"
     "single-screen.toml"
     "dual-screen.toml"
     "triple-screen.toml"

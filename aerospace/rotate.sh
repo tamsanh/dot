@@ -1,12 +1,14 @@
 #!/bin/bash
 
-set -e
 
-CUR_DIR=$(cd `dirname $0`; pwd)
+CUR_DIR=$(cd `dirname $(readlink -f $0)`; pwd)
+
 
 MAX_MONITORS=`aerospace list-monitors | wc -l`
 
-python3 -c """
+source $CUR_DIR/../.venv/bin/activate
+
+python -c """
 import tomllib
 import tomli_w
 
@@ -27,7 +29,7 @@ t['workspace-to-monitor-force-assignment'] = new_assignments
 with open('${CUR_DIR}/temp.aerospace.toml', 'wb') as f:
     tomli_w.dump(t, f)
 
-"""
+""" > ~/tempfile 2>&1
 
 aerospace reload-config
 

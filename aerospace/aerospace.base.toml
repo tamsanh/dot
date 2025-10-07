@@ -158,9 +158,10 @@ automatically-unhide-macos-hidden-apps = true
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
 [mode.service.binding]
-    r = ['reload-config', 'mode main']
-    esc = ['flatten-workspace-tree', 'mode main'] # reset layout
-    backspace = ['close-all-windows-but-current', 'mode main']
+    p = ['exec-and-forget ~/.aerospace.rotate.sh', 'mode main']
+    r = ['exec-and-forget ~/.aerospace.reload.sh', 'mode main']
+    esc = 'mode main' # escape mode with no consequence
+    backspace = ['flatten-workspace-tree', 'mode main'] # reset layout
 
     f = ['layout floating tiling', 'mode main'] # Toggle between floating and tiling layout
 
