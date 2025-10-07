@@ -13,7 +13,7 @@ keybind = cmd+l=goto_split:right
 
 keybind = cmd+shift+enter=toggle_split_zoom
 keybind = cmd+shift+space=equalize_splits
-keybind = global:super+grave_accent=toggle_quick_terminal
+# keybind = global:super+grave_accent=toggle_quick_terminal
 
 custom-shader = shaders/bloom060.glsl
 
