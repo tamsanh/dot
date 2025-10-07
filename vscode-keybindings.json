@@ -110,6 +110,30 @@
     "command": "workbench.action.debug.restart"
   },
   {
+    "key": "ctrl+3",
+    "command": "editor.debug.action.toggleBreakpoint"
+  },
+  {
+    "key": "ctrl+4",
+    "command": "workbench.action.debug.stop"
+  },
+  {
+    "key": "ctrl+7",
+    "command": "workbench.action.debug.stepOut"
+  },
+  {
+    "key": "ctrl+9",
+    "command": "workbench.action.debug.stepOver"
+  },
+  {
+    "key": "ctrl+0",
+    "command": "workbench.action.debug.stepInto"
+  },
+  {
+    "key": "ctrl+8",
+    "command": "workbench.action.debug.continue"
+  },
+  {
     "key": "escape",
     "command": "workbench.action.focusActiveEditorGroup",
     "when": "sideBarFocus"
