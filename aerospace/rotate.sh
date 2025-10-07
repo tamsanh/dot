@@ -22,6 +22,11 @@ assignments = t['workspace-to-monitor-force-assignment']
 
 new_assignments = {}
 for space, assignment in assignments.items():
+    # Skip space R to allow
+    # overflow when plugging in
+    # new multiple monitors
+    if space == 'R':
+        continue
     new_assignments[space] = (assignment % (max_monitors)) + 1
 
 t['workspace-to-monitor-force-assignment'] = new_assignments
