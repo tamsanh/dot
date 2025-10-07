@@ -87,3 +87,7 @@ fi
 
 eval "$(starship init zsh)"
 
+if [ -e ~/.zsecrets ]; then
+    source ~/.zsecrets
+fi
+
