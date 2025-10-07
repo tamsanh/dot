@@ -2,16 +2,73 @@
 
 CUR_DIR=$(cd `dirname $0`; pwd)
 
-brew install aerospace
-brew install ghostty
-brew install git-delta
-brew install starship
+function install_if_nonzero {
+    local retcode=$1
+    local toolname=$2
+    if [[ $retcode -ne 0 ]]; then
+        echo -e "\tInstalling $toolname"
+        brew install $toolname
+    else
+        echo -e "\tSkipping $toolname"
+    fi
+}
 
+function maybe_install {
+    local cmd=$1
+    local toolname=${2:-${cmd}}
+    $cmd --help >/dev/null 2>&1
+    install_if_nonzero $? $toolname
+}
 
-cd $CUR_DIR
-if [ ! -e .venv ]; then
-    virtualenv .venv
+function setup_dot_python {
+    echo "Setup Python"
+    cd $CUR_DIR
+    if [ ! -e .venv ]; then
+        echo -e "\tCreating cirtualenv at ${CUR_DIR}/.venv"
+        virtualenv .venv
+    else
+        echo -e "\tSkipping virtualenv at ${CUR_DIR}/.venv"
+    fi
+
     source .venv/bin/activate
-    pip install tomli_w
-fi
 
+    # Pipe seperator between
+    # IMPORT_NAME|INSTALL_NAME
+    # because python packages sometimes
+    # two different names between pip install
+    # and python import
+
+    python_pkgs=(
+        "tomli_w|tomli_w"
+    )
+    for pkg in ${python_pkgs[@]}; do
+        pkg_import=${pkg##*|}
+        pkg_install=${pkg%%|*}
+
+        # Install if import does not exist
+        python -c "import ${pkg_import}" >/dev/null 2>&1
+        if [[ $? -ne 0 ]]; then
+            echo -e "\tInstalling python ${pkg_install}"
+            pip install ${pkg_install}
+        else
+            echo -e "\tSkipping python ${pkg_install}"
+        fi
+
+    done
+}
+
+
+echo "Start Installing dot requirements"
+echo
+echo "Setup command line tools"
+maybe_install aerospace
+maybe_install ghostty
+maybe_install delta git-delta
+maybe_install starship
+maybe_install bat
+
+echo
+setup_dot_python
+
+echo
+echo "Done Installing dot requirements"
