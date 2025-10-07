@@ -179,11 +179,11 @@ vimcmd_replace_symbol = '[  ](bold fg:lavender)'
 vimcmd_visual_symbol = '[  ](bold fg:yellow)'
 
 [cmd_duration]
-show_milliseconds = false
+show_milliseconds = true
 format = "[ 󱞾 $duration](bg:sapphire fg:crust)"
 disabled = false
 show_notifications = false
-min_time_to_notify = 10000
+min_time = 7_000
 
 [palettes.catppuccin_mocha]
 rosewater = "#f5e0dc"
