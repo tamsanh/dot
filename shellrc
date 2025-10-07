@@ -34,14 +34,14 @@ alias gst="git stash"
 alias gsp="git stash pop"
 
 function hlog {
-	git log --date-order --all --graph --format="%C(green)%h %Creset%C(yellow)%an%Creset %C(blue bold)%ar%Creset %C(red bold)%d%Creset %s" $@
+    git log --date-order --all --graph --format="%C(green)%h %Creset%C(yellow)%an%Creset %C(blue bold)%ar%Creset %C(red bold)%d%Creset %s" $@
 }
 
 alias hl="hlog"
 
 function gi {
     # Generate git ignore files
-	curl https://www.toptal.com/developers/gitignore/api/$1
+    curl https://www.toptal.com/developers/gitignore/api/$1
 }
 
 
