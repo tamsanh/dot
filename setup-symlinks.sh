@@ -24,16 +24,21 @@ function uplink {
 
 }
 
+function setup_git {
+    uplink $CURR_DIR/git/gitconfig .gitconfig
+
+    # git needs a special private file
+    if [ ! -e .gitconfig-private ]; then
+        cp $CURR_DIR/git/gitconfig-private .gitconfig-private
+    fi
+}
+
+
 CURR_DIR=$(cd `dirname $0`; pwd)
 
 cd ~
 
-uplink $CURR_DIR/git/gitconfig .gitconfig
-
-if [ ! -e .gitconfig-private ]; then
-    cp $CURR_DIR/git/gitconfig-private .gitconfig-private
-fi
-
+setup_git
 uplink $CURR_DIR/aerospace/aerospace.toml .aerospace.toml
 uplink $CURR_DIR/vimrc .vimrc
 uplink $CURR_DIR/vscode/keybindings.json "Library/Application Support/Code/User/keybindings.json"
