@@ -5,7 +5,7 @@ set rnu
 set hlsearch
 
 set list
-set listchars=tab:>- ",space:·,eol:$,trail:~,extends:>,precedes:<
+set listchars=tab:>-,trail:· ",space:·,eol:$,extends:>,precedes:<
 
 syntax on
 
