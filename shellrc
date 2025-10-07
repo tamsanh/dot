@@ -80,3 +80,10 @@ if [ -e ~/.zsecrets ]; then
     source ~/.zsecrets
 fi
 
+if [ -e ~/.zdotdir ]; then
+    source ~/.zdotdir
+fi
+
+alias rotate-monitors="${DOT_DIR}/aerospace/rotate.sh"
+alias reload-monitors="${DOT_DIR}/aerospace/reload.sh"
+

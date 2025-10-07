@@ -1,5 +1,7 @@
 #!/bin/bash
 
+CURR_DIR=$(cd `dirname $0`; pwd)
+
 function uplink {
     local src=$1
     local trgt=$2
@@ -25,6 +27,7 @@ function uplink {
 }
 
 function setup_git {
+    echo "Setup .gitconfig"
     uplink $CURR_DIR/git/gitconfig .gitconfig
 
     # git needs a special private file
@@ -33,13 +36,18 @@ function setup_git {
     fi
 }
 
-
-CURR_DIR=$(cd `dirname $0`; pwd)
+function setup_envvars {
+    echo "Setup envvars:"
+    echo "  DOT_DIR=\"${CURR_DIR}\""
+    echo "export DOT_DIR=\"${CURR_DIR}\"" > ~/.zdotdir
+}
 
 cd ~
 
 setup_git
-uplink $CURR_DIR/aerospace/aerospace.toml .aerospace.toml
+setup_envvars
+
+uplink $CURR_DIR/aerospace/temp.aerospace.toml .aerospace.toml
 uplink $CURR_DIR/vimrc .vimrc
 uplink $CURR_DIR/vscode/keybindings.json "Library/Application Support/Code/User/keybindings.json"
 
