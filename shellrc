@@ -82,3 +82,5 @@ if [[ -d venv && ! -z $MYVIMRC ]]; then
   fi
 fi
 
+eval "$(starship init zsh)"
+

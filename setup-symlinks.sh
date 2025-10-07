@@ -45,8 +45,10 @@ uplink $CURR_DIR/vscode/keybindings.json "Library/Application Support/Code/User/
 
 uplink $CURR_DIR/shellrc .`basename ${SHELL}`rc
 
+
 mkdir -p .config
 cd .config
 
 uplink $CURR_DIR/ghostty ghostty
+uplink $CURR_DIR/starship/starship.toml starship.toml
 
