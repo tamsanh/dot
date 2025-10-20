@@ -25,6 +25,15 @@ function maybe_install {
     install_if_nonzero $? $toolname $option
 }
 
+function must_install {
+    local cmd=$1
+    $cmd --help >/dev/null 2>&1
+    if [[ $? -ne 0 ]]; then
+        echo -e "\tMust Install ${cmd}"
+        exit 1
+    fi
+}
+
 function setup_dot_python {
     echo "Setup Python"
     cd $CUR_DIR
@@ -67,8 +76,12 @@ echo "Start Installing dot requirements"
 echo
 echo "Setup command line tools"
 
+must_install asdf
+must_install python
+
 maybe_install aerospace "nikitabobko/tap/aerospace" --cask
 maybe_install ghostty
+maybe_install xz
 maybe_install starship
 maybe_install bat
 
