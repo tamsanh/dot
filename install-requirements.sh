@@ -5,9 +5,13 @@ CUR_DIR=$(cd `dirname $0`; pwd)
 function install_if_nonzero {
     local retcode=$1
     local toolname=$2
+    local option=$3
     if [[ $retcode -ne 0 ]]; then
         echo -e "\tInstalling $toolname"
-        brew install $toolname
+    if [[ ! -z $option ]]; then
+        echo -e "\t\twith Option $option"
+    fi
+        brew install $option $toolname
     else
         echo -e "\tSkipping $toolname"
     fi
@@ -16,8 +20,9 @@ function install_if_nonzero {
 function maybe_install {
     local cmd=$1
     local toolname=${2:-${cmd}}
+    local option=$3
     $cmd --help >/dev/null 2>&1
-    install_if_nonzero $? $toolname
+    install_if_nonzero $? $toolname $option
 }
 
 function setup_dot_python {
@@ -62,7 +67,7 @@ echo "Start Installing dot requirements"
 echo
 echo "Setup command line tools"
 
-maybe_install aerospace
+maybe_install aerospace "nikitabobko/tap/aerospace" --cask
 maybe_install ghostty
 maybe_install starship
 maybe_install bat
