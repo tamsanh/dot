@@ -47,9 +47,11 @@ cd ~
 setup_git
 setup_envvars
 
-uplink $CUR_DIR/aerospace/temp.aerospace.toml .aerospace.toml
 uplink $CUR_DIR/aerospace/rotate.sh .aerospace.rotate.sh
 uplink $CUR_DIR/aerospace/reload.sh .aerospace.reload.sh
+
+$CUR_DIR/aerospace/reload.sh
+uplink $CUR_DIR/aerospace/temp.aerospace.toml .aerospace.toml
 
 uplink $CUR_DIR/vimrc .vimrc
 uplink $CUR_DIR/vscode/keybindings.json "Library/Application Support/Code/User/keybindings.json"
