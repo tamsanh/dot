@@ -93,3 +93,8 @@ setup_dot_python
 
 echo
 echo "Done Installing dot requirements"
+
+echo "Disable Key Repeat"
+
+defaults write -g ApplePressAndHoldEnabled -bool false
+
