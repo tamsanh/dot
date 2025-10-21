@@ -14,13 +14,13 @@ function uplink {
     fi
 
     if [ ! -e "${trgt}" ]; then
-        echo "Linking ${src} to ${full_trgt_path}"
+        echo "Linking ${src} to '${full_trgt_path}'"
         ln -s ${src} "${trgt}"
     else
         if [ -L "${trgt}" ]; then
-            echo "Skipping ${full_trgt_path}"
+            echo "Skipping '${full_trgt_path}'"
         else
-            echo "Exists and Not Symlinked: ${full_trgt_path}"
+            echo "Exists and Not Symlinked: '${full_trgt_path}'"
         fi
     fi
 
