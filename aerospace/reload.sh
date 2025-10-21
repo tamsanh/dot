@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 CUR_DIR=$(cd `dirname $(readlink -f $0)`; pwd)
 
 
