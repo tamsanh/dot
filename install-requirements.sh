@@ -94,6 +94,16 @@ setup_dot_python
 echo
 echo "Done Installing dot requirements"
 
+if [[ ! -e $CUR_DIR/Lilex.zip ]]; then
+    echo 'Downloading Lilex Font'
+    curl -o $CUR_DIR/Lilex.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/Lilex.zip
+    open $CUR_DIR/Lilex.zip
+    open $CUR_DIR/Lilex
+else
+    echo 'Skip Downloading Lilex Font'
+fi
+
+
 echo "Disable Key Repeat"
 
 defaults write -g ApplePressAndHoldEnabled -bool false
