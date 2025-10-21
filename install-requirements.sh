@@ -81,6 +81,7 @@ must_install python
 
 maybe_install aerospace "nikitabobko/tap/aerospace" --cask
 maybe_install ghostty
+maybe_install autojump
 maybe_install xz
 maybe_install starship
 maybe_install bat
