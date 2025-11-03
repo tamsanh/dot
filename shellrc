@@ -1,5 +1,6 @@
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
+
 export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 
 # append completions to fpath
@@ -48,6 +49,7 @@ function gi {
 function gpr() {
     # Ex. https://github.com/ORG/REPO/pull/new/BRANCH
     set -x
+    git push origin
     branch=`git branch --show-current`
     origin=`cat .git/config | fgrep -A 2 "\"origin\"" | fgrep url | cut -d':' -f 2`
     org=`echo $origin | cut -d '/' -f 1`
@@ -152,3 +154,9 @@ export default App;
     git add .
     git commit -m "Run prettier"
 }
+
+eval "$(direnv hook zsh)"
+
+
+# Added by Windsurf
+export PATH="/Users/tam/.codeium/windsurf/bin:$PATH"
