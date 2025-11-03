@@ -61,6 +61,10 @@ uplink $CUR_DIR/vimrc .vimrc
 uplink $CUR_DIR/vscode/keybindings.json "Library/Application Support/Code/User/keybindings.json"
 uplink $CUR_DIR/vscode/settings.json "Library/Application Support/Code/User/settings.json"
 
+# Setup Windsurf
+uplink $CUR_DIR/vscode/keybindings.json "Library/Application Support/Windsurf/User/keybindings.json"
+uplink $CUR_DIR/vscode/settings.json "Library/Application Support/Windsurf/User/settings.json"
+
 # Setup Shell
 uplink $CUR_DIR/shellrc .`basename ${SHELL}`rc
 
