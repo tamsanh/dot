@@ -177,3 +177,8 @@ automatically-unhide-macos-hidden-apps = true
     up = 'volume up'
     shift-down = ['volume set 0', 'mode main']
 
+## Make all windows tile immediately
+## so that rectangle can be used to manage them
+# [[on-window-detected]]
+#    run = ['layout floating']
+
