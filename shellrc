@@ -159,7 +159,9 @@ export default App;
     git commit -m "Run prettier"
 }
 
-eval "$(direnv hook zsh)"
+if [[ -e "${HOME}/.zshrc.secrets" ]]; then
+    source "${HOME}/.zshrc.secrets"
+fi
 
 
 # Added by Windsurf
