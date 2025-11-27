@@ -163,6 +163,9 @@ if [[ -e "${HOME}/.zshrc.secrets" ]]; then
     source "${HOME}/.zshrc.secrets"
 fi
 
+alias ls="eza --icons=always"
+eval "$(direnv hook zsh)"
+eval "$(fzf --zsh)"
 
 # Added by Windsurf
 export PATH="/Users/tam/.codeium/windsurf/bin:$PATH"
