@@ -230,6 +230,14 @@
     "key": "cmd+shift+d",
     "command": "workbench.action.splitEditorDown",
     "when": "editorFocus"
-  }
+},
+{
+    "key": "shift+enter",
+    "command": "workbench.action.terminal.sendSequence",
+    "args": {
+        "text": "\u001b\r"
+    },
+    "when": "terminalFocus"
+}
 ]
 
