@@ -50,11 +50,11 @@ setup_git
 setup_envvars
 
 # Setup Aerospace
-uplink $CUR_DIR/aerospace/rotate.sh .aerospace.rotate.sh
-uplink $CUR_DIR/aerospace/reload.sh .aerospace.reload.sh
+# uplink $CUR_DIR/aerospace/rotate.sh .aerospace.rotate.sh
+# uplink $CUR_DIR/aerospace/reload.sh .aerospace.reload.sh
 
-$CUR_DIR/aerospace/reload.sh
-uplink $CUR_DIR/aerospace/temp.aerospace.toml .aerospace.toml
+# $CUR_DIR/aerospace/reload.sh
+# uplink $CUR_DIR/aerospace/temp.aerospace.toml .aerospace.toml
 
 # Setup Vim
 uplink $CUR_DIR/vimrc .vimrc
@@ -63,9 +63,16 @@ uplink $CUR_DIR/vimrc .vimrc
 uplink $CUR_DIR/vscode/keybindings.json "Library/Application Support/Code/User/keybindings.json"
 uplink $CUR_DIR/vscode/settings.json "Library/Application Support/Code/User/settings.json"
 
+# Setup iTerm2
+uplink $CUR_DIR/iTerm2/equalize_panes.py "Library/Application\ Support/iTerm2/Scripts/AutoLaunch/equalize_panes.py"
+
 # Setup Windsurf
-uplink $CUR_DIR/vscode/keybindings.json "Library/Application Support/Windsurf/User/keybindings.json"
-uplink $CUR_DIR/vscode/settings.json "Library/Application Support/Windsurf/User/settings.json"
+# uplink $CUR_DIR/vscode/keybindings.json "Library/Application Support/Windsurf/User/keybindings.json"
+# uplink $CUR_DIR/vscode/settings.json "Library/Application Support/Windsurf/User/settings.json"
+
+# Setup VSCode
+uplink $CUR_DIR/vscode/keybindings.json "Library/Application Support/Code/User/keybindings.json"
+uplink $CUR_DIR/vscode/settings.json "Library/Application Support/Code/User/settings.json"
 
 # Setup Shell
 uplink $CUR_DIR/shellrc .`basename ${SHELL}`rc
