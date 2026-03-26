@@ -100,16 +100,26 @@ async def main(connection):
 
         LEFT_WIDTH = 2  # columns to pin the leftmost pane to
 
-        # Derive chars-per-pixel from the first session (uniform within a window).
-        ref = sessions[0]
-        char_w = ref.grid_size.width / ref.frame.size.width
-        char_h = ref.grid_size.height / ref.frame.size.height
-
-        total_w = round(max(s.frame.origin.x + s.frame.size.width for s in sessions) * char_w)
-        total_h = round(max(s.frame.origin.y + s.frame.size.height for s in sessions) * char_h)
-
         left = min(sessions, key=lambda s: s.frame.origin.x)
         others = [s for s in sessions if s != left]
+
+        # Derive total character dimensions from the split tree rather than pixel
+        # conversion — pixel frames can include margins in full-screen mode that
+        # aren't part of the character grid, causing the window to shrink.
+        full_tree = build_split_tree(sessions)
+
+        def tree_size(tree):
+            if not isinstance(tree, tuple):
+                return tree.grid_size.width, tree.grid_size.height
+            kind, a, b = tree
+            aw, ah = tree_size(a)
+            bw, bh = tree_size(b)
+            if kind == 'v':
+                return aw + bw, max(ah, bh)
+            else:
+                return max(aw, bw), ah + bh
+
+        total_w, total_h = tree_size(full_tree)
 
         # Build and equalize the tree for the non-pinned panes.
         others_tree = build_split_tree(others)
