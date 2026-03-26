@@ -79,12 +79,13 @@ echo "Setup command line tools"
 must_install asdf
 must_install python
 
-maybe_install aerospace "nikitabobko/tap/aerospace" --cask
-maybe_install ghostty
+# maybe_install aerospace "nikitabobko/tap/aerospace" --cask
+# maybe_install ghostty
 maybe_install autojump
+maybe_install worktrunk
 maybe_install xz
 maybe_install starship
-maybe_install bat
+# maybe_install bat
 
 # maybe_install delta git-delta
 
