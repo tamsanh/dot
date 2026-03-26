@@ -22,15 +22,21 @@ async def main(connection):
         if len(sessions) <= 1:
             return
 
-        # Setting all sessions to the same preferred_size gives them equal weight
-        # when async_update_layout() redistributes the available space.
-        sizes = [s.grid_size for s in sessions]
-        avg_w = sum(s.width for s in sizes) // len(sizes)
-        avg_h = sum(s.height for s in sizes) // len(sizes)
-        target = iterm2.Size(avg_w, avg_h)
+        # Pin the leftmost pane to a narrow fixed width; equalize the rest.
+        LEFT_WIDTH = 2  # columns
 
-        for session in sessions:
-            session.preferred_size = target
+        left = min(sessions, key=lambda s: s.frame.origin.x)
+        others = [s for s in sessions if s != left]
+
+        left.preferred_size = iterm2.Size(LEFT_WIDTH, left.grid_size.height)
+
+        if others:
+            sizes = [s.grid_size for s in others]
+            avg_w = sum(s.width for s in sizes) // len(sizes)
+            avg_h = sum(s.height for s in sizes) // len(sizes)
+            target = iterm2.Size(avg_w, avg_h)
+            for session in others:
+                session.preferred_size = target
 
         await tab.async_update_layout()
 
