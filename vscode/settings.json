@@ -2,18 +2,18 @@
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.codeActionsOnSave": {
-      "source.organizeImports": "always"
+      "source.organizeImports": "always",
     },
-    "isort.args": ["--profile", "black"]
+    "isort.args": ["--profile", "black"],
   },
   "[html]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "python.analysis.typeCheckingMode": "standard",
   "editor.fontFamily": "'Lilex Nerd Font Mono', Menlo, Monaco, 'Courier New', monospace",
@@ -22,10 +22,16 @@
   "editor.fontLigatures": true,
   "files.autoSave": "onFocusChange",
   "[typescriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "playwright.reuseBrowser": true,
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "terminal.integrated.macOptionIsMeta": true
+  "terminal.integrated.macOptionIsMeta": true,
+  "claudeCode.preferredLocation": "panel",
+  "terminal.integrated.suggest.enabled": false,
+  "terminal.integrated.enableMultiLinePasteWarning": "never",
+  "[go]": {
+    "editor.defaultFormatter": "golang.go",
+  },
 }
