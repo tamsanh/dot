@@ -8,6 +8,8 @@ function uplink {
 
     full_trgt_path=`pwd`/${trgt}
 
+    mkdir -p `dirname ${full_trgt_path}`
+
     if [ ! -e "${src}" ]; then
         echo "Error: Missing ${src}"
         return
