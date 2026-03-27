@@ -2,94 +2,16 @@
 """
 Equalize iTerm2 pane sizes in the current tab.
 
+Layout: one narrow left pane (LEFT_WIDTH columns, full height) plus N equal-width
+columns each split into a top and bottom pane.
+
 Runs from: iTerm2 menu → Scripts → equalize_panes
 """
 
 import iterm2
+from collections import defaultdict
 
-
-def build_split_tree(sessions):
-    """
-    Reconstruct the binary split tree from pixel frame data.
-    Returns a session (leaf) or ('v'|'h', subtree_a, subtree_b).
-
-    iTerm2 always produces a binary guillotine-cut layout, so there is always
-    a straight cut that partitions any group of panes into two non-overlapping
-    halves — we just have to find it.
-
-    Both sides are classified by right/bottom edge rather than origin, so that
-    subpixel rounding differences between adjacent panes don't cause misclassification.
-    """
-    if len(sessions) == 1:
-        return sessions[0]
-
-    # Use origin (left/top edges) for both cut candidates and classification.
-    # Panes in the same column/row can share the same right/bottom edge (e.g. due
-    # to per-pane title bars offsetting origin without changing the far edge), so
-    # right/bottom edges are not reliable as cut points.
-
-    # Try vertical cuts (left/right).
-    for cut_x in sorted(set(round(s.frame.origin.x) for s in sessions))[:-1]:
-        left  = [s for s in sessions if round(s.frame.origin.x) <= cut_x]
-        right = [s for s in sessions if round(s.frame.origin.x) >  cut_x]
-        if left and right and len(left) + len(right) == len(sessions):
-            return ('v', build_split_tree(left), build_split_tree(right))
-
-    # Try horizontal cuts (top/bottom).
-    for cut_y in sorted(set(round(s.frame.origin.y) for s in sessions))[:-1]:
-        top    = [s for s in sessions if round(s.frame.origin.y) <= cut_y]
-        bottom = [s for s in sessions if round(s.frame.origin.y) >  cut_y]
-        if top and bottom and len(top) + len(bottom) == len(sessions):
-            return ('h', build_split_tree(top), build_split_tree(bottom))
-
-    # Frame data is stale or non-guillotine — can't determine layout from positions.
-    # Fall back to a balanced binary tree so assign_sizes distributes space equally.
-    print(f"Frame data stale for {len(sessions)} sessions, using fallback equal split:")
-    for s in sessions:
-        print(f"  {s.name}: grid={s.grid_size} frame={s.frame}")
-    mid = len(sessions) // 2
-    return ('h', build_split_tree(sessions[:mid]), build_split_tree(sessions[mid:]))
-
-
-def col_count(tree):
-    """Number of equal-width columns in this subtree."""
-    if not isinstance(tree, tuple):
-        return 1
-    if tree[0] == 'v':
-        return col_count(tree[1]) + col_count(tree[2])
-    # 'h': both halves occupy the same column width
-    return col_count(tree[1])
-
-
-def row_count(tree):
-    """Number of equal-height rows in this subtree."""
-    if not isinstance(tree, tuple):
-        return 1
-    if tree[0] == 'h':
-        return row_count(tree[1]) + row_count(tree[2])
-    # 'v': both halves occupy the same row height
-    return row_count(tree[1])
-
-
-def assign_sizes(tree, w, h):
-    """
-    Recursively assign equal sizes within the given w×h character budget.
-    At each 'v' split the width is divided proportionally to column count;
-    at each 'h' split the height is divided proportionally to row count.
-    Returns {session: (w, h)}.
-    """
-    if not isinstance(tree, tuple):
-        return {tree: (w, h)}
-
-    kind, a, b = tree
-    if kind == 'v':
-        ca, cb = col_count(a), col_count(b)
-        wa = w * ca // (ca + cb)
-        return {**assign_sizes(a, wa, h), **assign_sizes(b, w - wa, h)}
-    else:  # 'h'
-        ra, rb = row_count(a), row_count(b)
-        ha = h * ra // (ra + rb)
-        return {**assign_sizes(a, w, ha), **assign_sizes(b, w, h - ha)}
+LEFT_WIDTH = 2  # columns for the pinned left pane
 
 
 async def main(connection):
@@ -102,40 +24,66 @@ async def main(connection):
 
         tab = window.current_tab
         sessions = tab.sessions
-
         if len(sessions) <= 1:
             return
 
-        LEFT_WIDTH = 2  # columns to pin the leftmost pane to
-
         left = min(sessions, key=lambda s: s.frame.origin.x)
         others = [s for s in sessions if s != left]
+        num_cols = max(len(others) // 2, 1)
+        total_h = left.grid_size.height  # left spans full height — always exact
 
-        # Build the tree for non-pinned panes first.
-        others_tree = build_split_tree(others)
+        print(f"sessions={len(sessions)}  others={len(others)}  num_cols={num_cols}  total_h={total_h}")
+        print(f"left: grid={left.grid_size.width}x{left.grid_size.height}  frame={left.frame}")
+        for s in others:
+            print(f"  other '{s.name}': grid={s.grid_size.width}x{s.grid_size.height}  frame={s.frame}")
 
-        # Derive total character dimensions without pixel conversion and without
-        # needing to parse the full session list as a tree.
-        # - total_h: the left pane spans the full tab height by definition.
-        # - total_w: left pane's current width + others' current width (from their tree).
-        def tree_char_w(tree):
-            if not isinstance(tree, tuple):
-                return tree.grid_size.width
-            kind, a, b = tree
-            if kind == 'v':
-                return tree_char_w(a) + tree_char_w(b)
-            return tree_char_w(a)  # 'h': both halves share the same width
+        # If all panes share the same origin, frame data is stale from a recent
+        # layout change. The layout is already equalized; nothing to do.
+        origins = set((round(s.frame.origin.x), round(s.frame.origin.y)) for s in others)
+        if len(others) > 1 and len(origins) == 1:
+            print("Frame data stale — layout already equalized, skipping.")
+            return
 
-        total_h = left.grid_size.height
-        total_w = left.grid_size.width + tree_char_w(others_tree)
+        # Group others by their column (x-position).
+        by_col = defaultdict(list)
+        for s in others:
+            by_col[round(s.frame.origin.x)].append(s)
+        print(f"columns by x: { {x: [s.name for s in p] for x, p in by_col.items()} }")
 
-        sizes = assign_sizes(others_tree, total_w - LEFT_WIDTH, total_h)
-        sizes[left] = (LEFT_WIDTH, total_h)
+        # Sum grid widths of one pane per column + the left pane for an exact total_w.
+        # Using grid_size avoids any pixel-to-char conversion rounding.
+        # Use len(by_col) — not len(others)//2 — as the true column count so that
+        # full-height single-pane columns are counted correctly.
+        top_panes = [min(panes, key=lambda s: s.frame.origin.y) for panes in by_col.values()]
+        total_w = left.grid_size.width + sum(s.grid_size.width for s in top_panes)
+        num_actual_cols = len(by_col)
+        each_width = max((total_w - LEFT_WIDTH) // num_actual_cols, 1)
+        remainder = (total_w - LEFT_WIDTH) - each_width * num_actual_cols
+        print(f"total_w={total_w} (left={left.grid_size.width} + cols={[s.grid_size.width for s in top_panes]})")
+        print(f"num_cols(pane-count)={num_cols}  num_actual_cols(by-x)={num_actual_cols}")
+        print(f"each_width={each_width}  remainder={remainder}  check: {LEFT_WIDTH} + {each_width}*{num_actual_cols} + {remainder} = {LEFT_WIDTH + each_width * num_actual_cols + remainder}  (expected {total_w})")
 
-        print(f"total={total_w}x{total_h}  others_tree={others_tree}")
-        for session, (sw, sh) in sizes.items():
-            print(f"  {session.name}: {sw}x{sh}")
-            session.preferred_size = iterm2.Size(sw, sh)
+        left.preferred_size = iterm2.Size(LEFT_WIDTH, total_h)
+        print(f"set left '{left.name}' -> {LEFT_WIDTH}x{total_h}")
+
+        # Within each column, assign heights that sum exactly to total_h.
+        # The last pane in the column absorbs any remainder from integer division.
+        assigned_w_total = LEFT_WIDTH
+        for col_i, (x, col_panes) in enumerate(sorted(by_col.items())):
+            col_panes.sort(key=lambda s: s.frame.origin.y)
+            # Distribute remainder: first `remainder` columns get one extra character.
+            col_w = each_width + (1 if col_i < remainder else 0)
+            remaining_h = total_h
+            assigned_h_total = 0
+            for i, pane in enumerate(col_panes):
+                h = remaining_h if i == len(col_panes) - 1 else total_h // len(col_panes)
+                remaining_h -= h
+                assigned_h_total += h
+                pane.preferred_size = iterm2.Size(col_w, h)
+                print(f"  set '{pane.name}' -> {col_w}x{h}")
+            assigned_w_total += col_w
+            print(f"  col x={x}: width={col_w}  height sum={assigned_h_total} (expected {total_h})")
+        print(f"width sum={assigned_w_total} (expected {total_w})")
 
         await tab.async_update_layout()
 
