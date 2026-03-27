@@ -23,24 +23,32 @@ def build_split_tree(sessions):
     if len(sessions) == 1:
         return sessions[0]
 
-    # Try vertical cuts (left/right) in left-to-right order.
-    for cut_x in sorted(set(round(s.frame.origin.x + s.frame.size.width) for s in sessions))[:-1]:
-        left  = [s for s in sessions if round(s.frame.origin.x + s.frame.size.width) <= cut_x]
-        right = [s for s in sessions if round(s.frame.origin.x + s.frame.size.width) >  cut_x]
+    # Use origin (left/top edges) for both cut candidates and classification.
+    # Panes in the same column/row can share the same right/bottom edge (e.g. due
+    # to per-pane title bars offsetting origin without changing the far edge), so
+    # right/bottom edges are not reliable as cut points.
+
+    # Try vertical cuts (left/right).
+    for cut_x in sorted(set(round(s.frame.origin.x) for s in sessions))[:-1]:
+        left  = [s for s in sessions if round(s.frame.origin.x) <= cut_x]
+        right = [s for s in sessions if round(s.frame.origin.x) >  cut_x]
         if left and right and len(left) + len(right) == len(sessions):
             return ('v', build_split_tree(left), build_split_tree(right))
 
-    # Try horizontal cuts (top/bottom) in top-to-bottom order.
-    for cut_y in sorted(set(round(s.frame.origin.y + s.frame.size.height) for s in sessions))[:-1]:
-        top    = [s for s in sessions if round(s.frame.origin.y + s.frame.size.height) <= cut_y]
-        bottom = [s for s in sessions if round(s.frame.origin.y + s.frame.size.height) >  cut_y]
+    # Try horizontal cuts (top/bottom).
+    for cut_y in sorted(set(round(s.frame.origin.y) for s in sessions))[:-1]:
+        top    = [s for s in sessions if round(s.frame.origin.y) <= cut_y]
+        bottom = [s for s in sessions if round(s.frame.origin.y) >  cut_y]
         if top and bottom and len(top) + len(bottom) == len(sessions):
             return ('h', build_split_tree(top), build_split_tree(bottom))
 
-    print(f"No valid split found for {len(sessions)} sessions:")
+    # Frame data is stale or non-guillotine — can't determine layout from positions.
+    # Fall back to a balanced binary tree so assign_sizes distributes space equally.
+    print(f"Frame data stale for {len(sessions)} sessions, using fallback equal split:")
     for s in sessions:
-        print(f"  {s.name}: frame={s.frame}")
-    raise ValueError(f"No valid split found for {len(sessions)} sessions")
+        print(f"  {s.name}: grid={s.grid_size} frame={s.frame}")
+    mid = len(sessions) // 2
+    return ('h', build_split_tree(sessions[:mid]), build_split_tree(sessions[mid:]))
 
 
 def col_count(tree):
@@ -103,26 +111,24 @@ async def main(connection):
         left = min(sessions, key=lambda s: s.frame.origin.x)
         others = [s for s in sessions if s != left]
 
-        # Derive total character dimensions from the split tree rather than pixel
-        # conversion — pixel frames can include margins in full-screen mode that
-        # aren't part of the character grid, causing the window to shrink.
-        full_tree = build_split_tree(sessions)
-
-        def tree_size(tree):
-            if not isinstance(tree, tuple):
-                return tree.grid_size.width, tree.grid_size.height
-            kind, a, b = tree
-            aw, ah = tree_size(a)
-            bw, bh = tree_size(b)
-            if kind == 'v':
-                return aw + bw, max(ah, bh)
-            else:
-                return max(aw, bw), ah + bh
-
-        total_w, total_h = tree_size(full_tree)
-
-        # Build and equalize the tree for the non-pinned panes.
+        # Build the tree for non-pinned panes first.
         others_tree = build_split_tree(others)
+
+        # Derive total character dimensions without pixel conversion and without
+        # needing to parse the full session list as a tree.
+        # - total_h: the left pane spans the full tab height by definition.
+        # - total_w: left pane's current width + others' current width (from their tree).
+        def tree_char_w(tree):
+            if not isinstance(tree, tuple):
+                return tree.grid_size.width
+            kind, a, b = tree
+            if kind == 'v':
+                return tree_char_w(a) + tree_char_w(b)
+            return tree_char_w(a)  # 'h': both halves share the same width
+
+        total_h = left.grid_size.height
+        total_w = left.grid_size.width + tree_char_w(others_tree)
+
         sizes = assign_sizes(others_tree, total_w - LEFT_WIDTH, total_h)
         sizes[left] = (LEFT_WIDTH, total_h)
 
