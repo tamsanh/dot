@@ -9,7 +9,6 @@ Runs from: iTerm2 menu → Scripts → equalize_panes
 """
 
 import iterm2
-from collections import defaultdict
 
 LEFT_WIDTH = 2  # columns for the pinned left pane
 
@@ -29,61 +28,49 @@ async def main(connection):
 
         left = min(sessions, key=lambda s: s.frame.origin.x)
         others = [s for s in sessions if s != left]
-        num_cols = max(len(others) // 2, 1)
         total_h = left.grid_size.height  # left spans full height — always exact
 
-        print(f"sessions={len(sessions)}  others={len(others)}  num_cols={num_cols}  total_h={total_h}")
-        print(f"left: grid={left.grid_size.width}x{left.grid_size.height}  frame={left.frame}")
+        print(f"sessions={len(sessions)}  others={len(others)}  total_h={total_h}")
+        print(f"left: grid={left.grid_size.width}x{left.grid_size.height}  frame=({left.frame.origin.x},{left.frame.origin.y})")
         for s in others:
-            print(f"  other '{s.name}': grid={s.grid_size.width}x{s.grid_size.height}  frame={s.frame}")
+            print(f"  '{s.name}': grid={s.grid_size.width}x{s.grid_size.height}  y={s.frame.origin.y}")
 
-        # If all panes share the same origin, frame data is stale from a recent
-        # layout change. The layout is already equalized; nothing to do.
+        # If all panes share the same origin, frame data is stale.
         origins = set((round(s.frame.origin.x), round(s.frame.origin.y)) for s in others)
         if len(others) > 1 and len(origins) == 1:
-            print("Frame data stale — layout already equalized, skipping.")
+            print("Frame data stale — skipping.")
             return
 
-        # Group others by their column (x-position).
-        by_col = defaultdict(list)
-        for s in others:
-            by_col[round(s.frame.origin.x)].append(s)
-        print(f"columns by x: { {x: [s.name for s in p] for x, p in by_col.items()} }")
+        # Split others into top and bottom by y-position.
+        # x-coordinates are unreliable (often all 0), but y is stable.
+        # All panes at the minimum y are top panes — one per column.
+        min_y = min(s.frame.origin.y for s in others)
+        top_panes    = [s for s in others if round(s.frame.origin.y) == round(min_y)]
+        bottom_panes = [s for s in others if round(s.frame.origin.y) != round(min_y)]
 
-        # Sum grid widths of one pane per column + the left pane for an exact total_w.
-        # Using grid_size avoids any pixel-to-char conversion rounding.
-        # Use len(by_col) — not len(others)//2 — as the true column count so that
-        # full-height single-pane columns are counted correctly.
-        top_panes = [min(panes, key=lambda s: s.frame.origin.y) for panes in by_col.values()]
-        total_w = left.grid_size.width + sum(s.grid_size.width for s in top_panes)
-        num_actual_cols = len(by_col)
-        each_width = max((total_w - LEFT_WIDTH) // num_actual_cols, 1)
-        remainder = (total_w - LEFT_WIDTH) - each_width * num_actual_cols
-        print(f"total_w={total_w} (left={left.grid_size.width} + cols={[s.grid_size.width for s in top_panes]})")
-        print(f"num_cols(pane-count)={num_cols}  num_actual_cols(by-x)={num_actual_cols}")
-        print(f"each_width={each_width}  remainder={remainder}  check: {LEFT_WIDTH} + {each_width}*{num_actual_cols} + {remainder} = {LEFT_WIDTH + each_width * num_actual_cols + remainder}  (expected {total_w})")
+        num_cols = len(top_panes)
+        top_h    = total_h // 2
+        bot_h    = total_h - top_h  # top_h + bot_h always == total_h
+
+        # total_w from grid sizes (no pixel conversion): left + one top pane per column.
+        total_others_w = sum(s.grid_size.width for s in top_panes)
+        total_w        = left.grid_size.width + total_others_w
+        each_width     = max((total_w - LEFT_WIDTH) // num_cols, 1)
+
+        print(f"num_cols={num_cols}  total_w={total_w}  each_width={each_width}  top_h={top_h}  bot_h={bot_h}")
+        print(f"top panes:    {[s.name for s in top_panes]}")
+        print(f"bottom panes: {[s.name for s in bottom_panes]}")
+        print(f"width check:  {LEFT_WIDTH} + {each_width}*{num_cols} = {LEFT_WIDTH + each_width * num_cols}  (expected {total_w})")
 
         left.preferred_size = iterm2.Size(LEFT_WIDTH, total_h)
-        print(f"set left '{left.name}' -> {LEFT_WIDTH}x{total_h}")
+        for s in top_panes:
+            s.preferred_size = iterm2.Size(each_width, top_h)
+        for s in bottom_panes:
+            s.preferred_size = iterm2.Size(each_width, bot_h)
 
-        # Within each column, assign heights that sum exactly to total_h.
-        # The last pane in the column absorbs any remainder from integer division.
-        assigned_w_total = LEFT_WIDTH
-        for col_i, (x, col_panes) in enumerate(sorted(by_col.items())):
-            col_panes.sort(key=lambda s: s.frame.origin.y)
-            # Distribute remainder: first `remainder` columns get one extra character.
-            col_w = each_width + (1 if col_i < remainder else 0)
-            remaining_h = total_h
-            assigned_h_total = 0
-            for i, pane in enumerate(col_panes):
-                h = remaining_h if i == len(col_panes) - 1 else total_h // len(col_panes)
-                remaining_h -= h
-                assigned_h_total += h
-                pane.preferred_size = iterm2.Size(col_w, h)
-                print(f"  set '{pane.name}' -> {col_w}x{h}")
-            assigned_w_total += col_w
-            print(f"  col x={x}: width={col_w}  height sum={assigned_h_total} (expected {total_h})")
-        print(f"width sum={assigned_w_total} (expected {total_w})")
+        print(f"set left -> {LEFT_WIDTH}x{total_h}")
+        print(f"set {len(top_panes)} top panes -> {each_width}x{top_h}")
+        print(f"set {len(bottom_panes)} bottom panes -> {each_width}x{bot_h}")
 
         await tab.async_update_layout()
 
