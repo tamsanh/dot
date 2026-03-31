@@ -82,4 +82,5 @@ cd .config
 
 uplink $CUR_DIR/ghostty ghostty
 uplink $CUR_DIR/starship/starship.toml starship.toml
+uplink $CUR_DIR/neovim nvim
 
