@@ -20,6 +20,12 @@ end, { desc = "Debug: Quit" })
 map({ "n", "v" }, "p", "p", { noremap = true, desc = "Paste after cursor" })
 map({ "n", "v" }, "P", "P", { noremap = true, desc = "Paste before cursor" })
 
+-- Go to definition (CMD+B, à la IDE)
+map("n", "<D-b>", vim.lsp.buf.definition, { desc = "Go to Definition" })
+
+-- Toggle Neo-tree (CMD+E, à la IDE)
+map("n", "<D-e>", "<cmd>Neotree toggle<cr>", { desc = "Toggle Neo-tree" })
+
 -- Delete without clobbering the yank register
 map({ "n", "v" }, "d",  '"_d',  { desc = "Delete to black hole" })
 map({ "n", "v" }, "D",  '"_D',  { desc = "Delete to end of line (black hole)" })
