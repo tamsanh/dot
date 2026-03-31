@@ -16,6 +16,10 @@ map("n", "<leader>dq", function()
   require("dapui").close()
 end, { desc = "Debug: Quit" })
 
+-- Standard vim paste behavior (explicit, so plugins can't silently override)
+map({ "n", "v" }, "p", "p", { noremap = true, desc = "Paste after cursor" })
+map({ "n", "v" }, "P", "P", { noremap = true, desc = "Paste before cursor" })
+
 -- Delete without clobbering the yank register
 map({ "n", "v" }, "d",  '"_d',  { desc = "Delete to black hole" })
 map({ "n", "v" }, "D",  '"_D',  { desc = "Delete to end of line (black hole)" })
