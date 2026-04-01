@@ -62,27 +62,57 @@ async def main(connection):
         # total_w from grid sizes (no pixel conversion): left + one top pane per column.
         total_others_w = sum(s.grid_size.width for s in top_panes)
         total_w = left.grid_size.width + total_others_w
-        each_width = max((total_w - LEFT_WIDTH) // num_cols, 1)
+        others_w = total_w - LEFT_WIDTH
+        each_width = max(others_w // num_cols, 1)
+        remainder = others_w - each_width * num_cols  # distribute to first N cols, not left
 
         print(
-            f"num_cols={num_cols}  total_w={total_w}  each_width={each_width}  top_h={top_h}  bot_h={bot_h}"
+            f"num_cols={num_cols}  total_w={total_w}  each_width={each_width}  remainder={remainder}  top_h={top_h}  bot_h={bot_h}"
         )
         print(f"top panes:    {[s.name for s in top_panes]}")
         print(f"bottom panes: {[s.name for s in bottom_panes]}")
-        print(
-            f"width check:  {LEFT_WIDTH} + {each_width}*{num_cols} = {LEFT_WIDTH + each_width * num_cols}  (expected {total_w})"
-        )
 
+        # Apply profile to left pane first, before layout, so font changes
+        # don't interfere with the sizing pass. Skip any keys that affect
+        # window/pane dimensions — those are controlled by the layout below.
+        _DIMENSION_KEYS = {"Columns", "Rows", "Window Type", "Screen", "Space"}
+        profiles = await iterm2.Profile.async_get(connection)
+        smaller = next((p for p in profiles if p.name == "Smaller"), None)
+        if smaller:
+            print(f"Applying profile '{smaller.name}' to left pane")
+            backing = smaller.local_write_only_copy._LocalWriteOnlyProfile__values
+            print(f"  {len(backing)} properties to apply")
+            ok, skipped = 0, []
+            for key, value in backing.items():
+                if key in _DIMENSION_KEYS:
+                    print(f"  SKIP (dimension) {key!r}")
+                    continue
+                try:
+                    prop = iterm2.LocalWriteOnlyProfile()
+                    prop._LocalWriteOnlyProfile__values[key] = value
+                    await left.async_set_profile_properties(prop)
+                    ok += 1
+                except Exception as e:
+                    skipped.append(f"{key!r}: {e}")
+            print(f"  applied {ok}, skipped {len(skipped)}")
+            for s in skipped:
+                print(f"  SKIP {s}")
+        else:
+            print("Profile 'Smaller' not found")
+
+        # Force left to exactly LEFT_WIDTH; spread remainder into other columns.
         left.preferred_size = iterm2.Size(LEFT_WIDTH, total_h)
-        for s in top_panes:
-            s.preferred_size = iterm2.Size(each_width, top_h)
-        for s in bottom_panes:
-            s.preferred_size = iterm2.Size(each_width, bot_h)
+        for idx, s in enumerate(top_panes):
+            w = each_width + (1 if idx < remainder else 0)
+            s.preferred_size = iterm2.Size(w, top_h)
+        for idx, s in enumerate(bottom_panes):
+            w = each_width + (1 if idx < remainder else 0)
+            s.preferred_size = iterm2.Size(w, bot_h)
 
         print(f"set left -> {LEFT_WIDTH}x{total_h}")
-        print(f"set {len(top_panes)} top panes -> {each_width}x{top_h}")
-        print(f"set {len(bottom_panes)} bottom panes -> {each_width}x{bot_h}")
 
+        # Apply twice — iTerm2 sometimes needs a second pass to honour the left width.
+        await tab.async_update_layout()
         await tab.async_update_layout()
 
         path = await left.async_get_variable("path")
