@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# linear-ticket — Fetch a Linear ticket, create a worktree, and launch Claude
+# Usage: linear-ticket <TEAM-123 | https://linear.app/...>
+#
+# Requires: LINEAR_API_KEY env var, wt (worktrunk), claude
+
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: linear-ticket <TICKET-ID | URL>" >&2
+  exit 1
+fi
+
+_jq() {
+  python3 -c "import sys,json; d=json.load(sys.stdin); print($1)"
+}
+
+# Fetch ticket details
+echo "Fetching ticket..."
+ticket=$(/Users/tam/bin/linear get "$1")
+
+identifier=$(echo "$ticket" | _jq "d['identifier']")
+title=$(echo      "$ticket" | _jq "d['title']")
+description=$(echo "$ticket" | _jq "d.get('description') or ''")
+labels=$(echo     "$ticket" | _jq "','.join(n['name'].lower() for n in d.get('labels',{}).get('nodes',[]))")
+
+# Map Linear labels to a branch prefix
+prefix="feature"
+for label in $(echo "$labels" | tr ',' ' '); do
+  case "$label" in
+    *hotfix*)                              prefix="hotfix"  ; break ;;
+    *bug*|*fix*)                           prefix="bugfix"  ; break ;;
+    *release*)                             prefix="release" ; break ;;
+    *chore*|*maintenance*|*tech*|*debt* \
+    |*refactor*|*cleanup*|*infra*)         prefix="chore"   ; break ;;
+  esac
+done
+
+# Build branch name: prefix/IDENTIFIER-title-slug
+slug=$(echo "$title" \
+  | tr '[:upper:]' '[:lower:]' \
+  | sed 's/[^a-z0-9]/-/g' \
+  | sed 's/--*/-/g' \
+  | sed 's/^-//;s/-$//' \
+  | cut -c1-50)
+branch="${prefix}/$(echo "$identifier" | tr '[:upper:]' '[:lower:]')-${slug}"
+
+# Build the initial Claude prompt
+prompt="${identifier}: ${title}"
+if [[ -n "$description" ]]; then
+  prompt="${prompt}
+
+${description}"
+fi
+
+echo "Ticket:  ${identifier} — ${title}"
+echo "Branch:  ${branch}"
+echo ""
+
+wt switch --create "$branch" -x claude -- "$prompt"

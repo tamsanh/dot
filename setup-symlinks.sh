@@ -77,6 +77,9 @@ uplink $CUR_DIR/vscode/settings.json "Library/Application Support/Code/User/sett
 # Setup Shell
 uplink $CUR_DIR/shellrc .`basename ${SHELL}`rc
 
+# Setup bin
+uplink $CUR_DIR/bin "bin"
+
 mkdir -p .config
 cd .config
 

@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+# linear — Thin wrapper around the Linear GraphQL API
+# Usage:
+#   linear get <TEAM-123 | https://linear.app/...>
+#   Outputs JSON: { identifier, title, description, branchName, url }
+#
+# Requires: LINEAR_API_KEY env var
+
+set -euo pipefail
+
+API="https://api.linear.app/graphql"
+
+if [[ -z "${LINEAR_API_KEY:-}" ]]; then
+  echo "error: LINEAR_API_KEY is not set" >&2
+  exit 1
+fi
+
+_graphql() {
+  curl -s \
+    -H "Authorization: ${LINEAR_API_KEY}" \
+    -H "Content-Type: application/json" \
+    -d "$1" \
+    "$API"
+}
+
+_extract_id() {
+  local input="$1"
+  # Match identifiers like ENG-123, TEAM-42, ABC-9999 (from URL or bare)
+  if [[ "$input" =~ ([A-Za-z][A-Za-z0-9]+-[0-9]+) ]]; then
+    echo "${BASH_REMATCH[1]}" | tr '[:lower:]' '[:upper:]'
+  else
+    echo "error: cannot find a Linear identifier in: $input" >&2
+    exit 1
+  fi
+}
+
+cmd_get() {
+  [[ $# -lt 1 ]] && { echo "Usage: linear get <TICKET-ID | URL>" >&2; exit 1; }
+
+  local id
+  id=$(_extract_id "$1")
+
+  local payload
+  payload=$(printf '{"query":"query($id:String!){issue(id:$id){identifier title description branchName url labels{nodes{name}} state{id name type} team{id}}}","variables":{"id":"%s"}}' "$id")
+
+  local resp
+  resp=$(_graphql "$payload")
+
+  if echo "$resp" | python3 -c "import sys,json; d=json.load(sys.stdin); sys.exit(0 if 'errors' not in d else 1)" 2>/dev/null; then
+    echo "$resp" | python3 -c "import sys,json; d=json.load(sys.stdin); print(json.dumps(d['data']['issue']))"
+  else
+    echo "$resp" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('errors',[{}])[0].get('message','unknown error'))" >&2
+    exit 1
+  fi
+}
+
+cmd_start() {
+  [[ $# -lt 1 ]] && { echo "Usage: linear start <TICKET-ID | URL>" >&2; exit 1; }
+
+  local id
+  id=$(_extract_id "$1")
+
+  # Fetch the team's workflow states
+  local states_payload
+  states_payload=$(printf '{"query":"query($id:String!){issue(id:$id){team{states{nodes{id name type}}}}}","variables":{"id":"%s"}}' "$id")
+  local states_resp
+  states_resp=$(_graphql "$states_payload")
+
+  # Pick the best "started" state — prefer names suggesting active work
+  local state_id
+  state_id=$(echo "$states_resp" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+nodes = d['data']['issue']['team']['states']['nodes']
+started = [s for s in nodes if s['type'] == 'started']
+if not started:
+    print('error: no started state found for this team', file=sys.stderr)
+    sys.exit(1)
+# Prefer states whose name implies active work over hold/blocked/review states
+deprioritize = ('block', 'wait', 'hold', 'review', 'merge', 'paused')
+preferred = [s for s in started if not any(w in s['name'].lower() for w in deprioritize)]
+print((preferred or started)[0]['id'])
+") || exit 1
+
+  # Apply the state
+  local update_payload
+  update_payload=$(printf '{"query":"mutation($id:String!,$s:String!){issueUpdate(id:$id,input:{stateId:$s}){success}}","variables":{"id":"%s","s":"%s"}}' "$id" "$state_id")
+  local update_resp
+  update_resp=$(_graphql "$update_payload")
+
+  echo "$update_resp" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+if d.get('data', {}).get('issueUpdate', {}).get('success'):
+    print('marked as in-progress')
+else:
+    print('error: failed to update state', file=sys.stderr)
+    sys.exit(1)
+" || exit 1
+}
+
+case "${1:-}" in
+  get)   shift; cmd_get   "$@" ;;
+  start) shift; cmd_start "$@" ;;
+  *)
+    echo "Usage: linear get <TICKET-ID | URL>" >&2
+    echo "       linear start <TICKET-ID | URL>" >&2
+    exit 1
+    ;;
+esac

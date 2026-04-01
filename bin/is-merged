@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# is-merged — Check if the current branch has been merged into the default branch
+# Exit 0 = merged, exit 1 = not merged (useful in scripts/hooks)
+
+set -euo pipefail
+
+branch=$(git branch --show-current 2>/dev/null)
+if [[ -z "$branch" ]]; then
+  echo "error: not in a git repository or HEAD is detached" >&2
+  exit 1
+fi
+
+# Determine default branch
+default=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || true)
+if [[ -z "$default" ]]; then
+  for candidate in main master; do
+    if git rev-parse --verify "$candidate" &>/dev/null; then
+      default="$candidate"
+      break
+    fi
+  done
+fi
+if [[ -z "$default" ]]; then
+  echo "error: cannot determine default branch" >&2
+  exit 1
+fi
+
+if [[ -n "$(git status --porcelain 2>/dev/null)" ]]; then
+  echo "✗  uncommitted changes present"
+  exit 1
+fi
+
+git fetch --quiet
+
+if [[ "$branch" == "$default" ]]; then
+  echo "on default branch ($default)"
+  exit 0
+fi
+
+branch_sha=$(git rev-parse "$branch")
+default_sha=$(git rev-parse "origin/$default" 2>/dev/null || git rev-parse "$default")
+
+if [[ "$branch_sha" == "$default_sha" ]]; then
+  echo "⚠  $branch has no changes (same commit as $default)"
+  exit 0
+elif git merge-base --is-ancestor "$branch" "origin/$default" 2>/dev/null; then
+  echo "✓  $branch is merged into $default"
+else
+  echo "✗  $branch is not merged into $default"
+  exit 1
+fi
