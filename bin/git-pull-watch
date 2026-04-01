@@ -37,7 +37,7 @@ _load_entries() {
 
 _redraw() {
   local dir="${PWD##*/}"
-  dir="${dir:0:10}"
+  dir="${dir:0:8}"
   local dir_color
   dir_color=$(printf '%s' "$dir" | cksum | awk '{print ($1 % 200) + 50}')
   clear
