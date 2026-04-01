@@ -102,7 +102,13 @@ _draw_actions() {
   done <<< "$gh_lines"
 }
 
+prev_snapshot=""
+
 _redraw() {
+  local current_snapshot="${entries[*]}${gh_lines}"
+  [[ "$current_snapshot" == "$prev_snapshot" ]] && return
+  prev_snapshot="$current_snapshot"
+
   local dir="${PWD##*/}"
   dir="${dir:0:8}"
   local dir_color
