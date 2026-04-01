@@ -8,6 +8,7 @@ columns each split into a top and bottom pane.
 Runs from: iTerm2 menu → Scripts → equalize_panes
 """
 
+import os
 import iterm2
 
 LEFT_WIDTH = 8  # columns for the pinned left pane
@@ -83,6 +84,10 @@ async def main(connection):
         print(f"set {len(bottom_panes)} bottom panes -> {each_width}x{bot_h}")
 
         await tab.async_update_layout()
+
+        path = await left.async_get_variable("path")
+        if path:
+            await tab.async_set_title(os.path.basename(path))
 
     await equalize_panes.async_register(connection)
 

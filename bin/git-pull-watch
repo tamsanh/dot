@@ -43,6 +43,16 @@ _load_entries() {
     local display="${ticket:-$short}"
     entries+=("${time}|${display}|${color}")
   done < <(git log main --format="%H%x1f%P%x1f%cd%x1f%s" --date=format:"%H:%M:%S" 2>/dev/null)
+
+  # Fallback: if nothing matched, show raw commits
+  if [[ ${#entries[@]} -eq 0 ]]; then
+    while IFS=$'\x1f' read -r sha time; do
+      local short="${sha:0:7}"
+      local color
+      color=$(_sha_color "$short")
+      entries+=("${time}|${short}|${color}")
+    done < <(git log main -"$count" --format="%H%x1f%cd" --date=format:"%H:%M:%S" 2>/dev/null)
+  fi
 }
 
 _redraw() {

@@ -3,6 +3,7 @@
 
 [user]
     name = Tam Nguyen
+	email = tnguyen@northslopetech.com
 
 [filter "lfs"]
     process = git-lfs filter-process
