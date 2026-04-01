@@ -27,12 +27,22 @@ _sha_color() {
 
 _load_entries() {
   entries=()
-  while IFS=' ' read -r sha time; do
+  # Use $'\x1f' (unit separator) so spaces in subjects don't break field parsing.
+  # %P gives space-separated parent SHAs; word count >= 2 means merge commit.
+  # Scan without a hard limit so filtering doesn't starve the entry count.
+  while IFS=$'\x1f' read -r sha parents time subject && [[ ${#entries[@]} -lt $count ]]; do
+    local ticket
+    ticket=$(printf '%s' "$subject" | grep -ioE '[A-Z]{2,10}-[0-9]+' | head -1 | tr '[:lower:]' '[:upper:]')
+    local num_parents
+    num_parents=$(echo "$parents" | wc -w)
+    # Skip non-merge commits that have no ticket number
+    [[ $num_parents -lt 2 && -z "$ticket" ]] && continue
     local short="${sha:0:7}"
     local color
     color=$(_sha_color "$short")
-    entries+=("${time}|${short}|${color}")
-  done < <(git log main -"$count" --format="%H %cd" --date=format:"%H:%M:%S" 2>/dev/null)
+    local display="${ticket:-$short}"
+    entries+=("${time}|${display}|${color}")
+  done < <(git log main --format="%H%x1f%P%x1f%cd%x1f%s" --date=format:"%H:%M:%S" 2>/dev/null)
 }
 
 _redraw() {
