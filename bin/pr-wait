@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+# pr-wait — Block until CI or Greptile checks finish on a PR, then print results
+#
+# Usage:
+#   pr-wait ci        [PR-NUMBER] [--interval N]   wait for all non-Greptile CI
+#   pr-wait greptile  [PR-NUMBER] [--interval N]   wait for Greptile to complete
+#
+# PR-NUMBER defaults to the current branch's PR.
+# Interval defaults to 20 seconds.
+#
+# Progress is written to stderr; final summary is written to stdout.
+# Exit 0 = all watched checks passed. Exit 1 = at least one failed.
+
+set -euo pipefail
+
+# ── parse args ───────────────────────────────────────────────────────────────
+
+phase=""
+pr_number=""
+interval=20
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    ci|greptile)       phase="$1";      shift ;;
+    --interval|-i)     interval="$2";   shift 2 ;;
+    [0-9]*)            pr_number="$1";  shift ;;
+    *) echo "Usage: pr-wait (ci|greptile) [PR-NUMBER] [--interval N]" >&2; exit 1 ;;
+  esac
+done
+
+if [[ -z "$phase" ]]; then
+  echo "Usage: pr-wait (ci|greptile) [PR-NUMBER] [--interval N]" >&2
+  exit 1
+fi
+
+if [[ -z "$pr_number" ]]; then
+  pr_number=$(gh pr view --json number --jq '.number' 2>/dev/null) || {
+    echo "error: no PR found for current branch" >&2
+    exit 1
+  }
+fi
+
+echo "PR #${pr_number}: watching ${phase} (interval=${interval}s)" >&2
+
+# ── helpers ──────────────────────────────────────────────────────────────────
+
+_ci_pending() {
+  gh pr view "$pr_number" --json statusCheckRollup \
+    --jq '.statusCheckRollup[]
+          | select(.status != "COMPLETED")
+          | select(.name | test("(?i)greptile|claude-review") | not)
+          | "  \(.name): \(.status)"' \
+    2>/dev/null || true
+}
+
+_ci_summary() {
+  gh pr view "$pr_number" --json statusCheckRollup \
+    --jq '.statusCheckRollup[]
+          | select(.name | test("(?i)greptile|claude-review") | not)
+          | "  \(.name): \(.conclusion // .status)"' \
+    2>/dev/null || echo "  (no checks found)"
+}
+
+_greptile_status() {
+  gh pr view "$pr_number" --json statusCheckRollup \
+    --jq '.statusCheckRollup[]
+          | select(.name | test("(?i)greptile"))
+          | {status: .status, conclusion: (.conclusion // "pending")}' \
+    2>/dev/null || true
+}
+
+# ── phase: ci ────────────────────────────────────────────────────────────────
+
+if [[ "$phase" == "ci" ]]; then
+  while true; do
+    pending=$(_ci_pending)
+    if [[ -z "$pending" ]]; then
+      echo "All CI checks completed." >&2
+      break
+    fi
+    echo "Still pending:" >&2
+    echo "$pending" >&2
+    sleep "$interval"
+  done
+
+  echo "=== CI results for PR #${pr_number} ==="
+  _ci_summary
+
+  # exit 1 if any check failed
+  failed=$(gh pr view "$pr_number" --json statusCheckRollup \
+    --jq '[.statusCheckRollup[]
+           | select(.name | test("(?i)greptile|claude-review") | not)
+           | select(.conclusion == "FAILURE" or .conclusion == "ACTION_REQUIRED")]
+          | length' 2>/dev/null || echo 0)
+  [[ "$failed" -gt 0 ]] && exit 1 || exit 0
+fi
+
+# ── phase: greptile ──────────────────────────────────────────────────────────
+
+if [[ "$phase" == "greptile" ]]; then
+  # Give Greptile a moment to register if it was just triggered
+  sleep 5
+
+  not_found_count=0
+  while true; do
+    raw=$(_greptile_status)
+
+    if [[ -z "$raw" ]]; then
+      not_found_count=$((not_found_count + 1))
+      if [[ $not_found_count -ge 3 ]]; then
+        echo "Greptile check not found after several polls — may not be configured." >&2
+        echo "=== Greptile results for PR #${pr_number} ==="
+        echo "  (check not found)"
+        exit 0
+      fi
+      echo "Greptile check not visible yet, waiting…" >&2
+      sleep "$interval"
+      continue
+    fi
+
+    not_found_count=0
+    status=$(echo "$raw" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['status'])")
+    conclusion=$(echo "$raw" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['conclusion'])")
+
+    if [[ "$status" == "COMPLETED" ]]; then
+      echo "Greptile completed: $conclusion" >&2
+      break
+    fi
+
+    echo "Greptile: ${status} / ${conclusion}" >&2
+    sleep "$interval"
+  done
+
+  echo "=== Greptile results for PR #${pr_number} ==="
+  gh pr view "$pr_number" --json statusCheckRollup \
+    --jq '.statusCheckRollup[]
+          | select(.name | test("(?i)greptile"))
+          | "  \(.name): \(.conclusion // .status)"' \
+    2>/dev/null || echo "  (none)"
+
+  [[ "$conclusion" == "SUCCESS" ]] && exit 0 || exit 1
+fi
