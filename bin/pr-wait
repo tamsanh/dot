@@ -17,7 +17,7 @@ set -euo pipefail
 
 phase=""
 pr_number=""
-interval=20
+interval=30
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
