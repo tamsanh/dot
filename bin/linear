@@ -99,12 +99,126 @@ else:
 " || exit 1
 }
 
+cmd_create() {
+  local title="" description="" label="" priority="medium" project="Northslope CLI"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -t|--title)       title="$2";       shift 2 ;;
+      -d|--description) description="$2"; shift 2 ;;
+      -l|--label)       label="$2";       shift 2 ;;
+      -p|--priority)    priority="$2";    shift 2 ;;
+      --project)        project="$2";     shift 2 ;;
+      *) echo "Unknown option: $1" >&2; return 1 ;;
+    esac
+  done
+
+  [[ -z "$title" ]] && {
+    echo "Usage: linear create -t TITLE [-d DESC] [-l LABEL] [-p PRIORITY] [--project PROJECT]" >&2
+    return 1
+  }
+
+  local priority_int
+  case "$priority" in
+    urgent) priority_int=1 ;;
+    high)   priority_int=2 ;;
+    medium) priority_int=3 ;;
+    low)    priority_int=4 ;;
+    none)   priority_int=0 ;;
+    *) echo "Invalid priority '$priority'. Use: urgent|high|medium|low|none" >&2; return 1 ;;
+  esac
+
+  # Resolve project → team
+  local projects_resp
+  projects_resp=$(_graphql '{"query":"{ projects { nodes { id name teams { nodes { id } } } } }"}')
+
+  local team_id project_id
+  team_id=$(echo "$projects_resp" | python3 -c "
+import sys, json, os
+d = json.load(sys.stdin)
+for p in d['data']['projects']['nodes']:
+    if p['name'] == os.environ['LIN_PROJECT']:
+        nodes = p['teams']['nodes']
+        if nodes: print(nodes[0]['id'])
+        break
+" LIN_PROJECT="$project")
+
+  project_id=$(echo "$projects_resp" | python3 -c "
+import sys, json, os
+d = json.load(sys.stdin)
+for p in d['data']['projects']['nodes']:
+    if p['name'] == os.environ['LIN_PROJECT']:
+        print(p['id']); break
+" LIN_PROJECT="$project")
+
+  [[ -z "$team_id" ]] && { echo "error: project '$project' not found or has no team" >&2; return 1; }
+
+  # Resolve label
+  local label_id=""
+  if [[ -n "$label" ]]; then
+    local labels_resp
+    labels_resp=$(_graphql '{"query":"{ issueLabels { nodes { id name } } }"}')
+    label_id=$(echo "$labels_resp" | python3 -c "
+import sys, json, os
+d = json.load(sys.stdin)
+name = os.environ['LIN_LABEL'].lower()
+for l in d['data']['issueLabels']['nodes']:
+    if l['name'].lower() == name:
+        print(l['id']); break
+" LIN_LABEL="$label")
+    [[ -z "$label_id" ]] && echo "warning: label '$label' not found, creating without label" >&2
+  fi
+
+  # Build mutation payload safely via Python
+  local payload
+  payload=$(python3 -c "
+import json, os
+inp = {
+    'title':     os.environ['LIN_TITLE'],
+    'teamId':    os.environ['LIN_TEAM'],
+    'priority':  int(os.environ['LIN_PRIORITY']),
+}
+if os.environ.get('LIN_DESC'):    inp['description'] = os.environ['LIN_DESC']
+if os.environ.get('LIN_PROJECT'): inp['projectId']   = os.environ['LIN_PROJECT']
+if os.environ.get('LIN_LABEL'):   inp['labelIds']     = [os.environ['LIN_LABEL']]
+print(json.dumps({
+    'query': 'mutation Create(\$i: IssueCreateInput!) { issueCreate(input: \$i) { success issue { identifier title url } } }',
+    'variables': {'i': inp}
+}))
+" \
+    LIN_TITLE="$title" \
+    LIN_TEAM="$team_id" \
+    LIN_PRIORITY="$priority_int" \
+    LIN_DESC="$description" \
+    LIN_PROJECT="$project_id" \
+    LIN_LABEL="$label_id")
+
+  local resp
+  resp=$(_graphql "$payload")
+
+  echo "$resp" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+issue = d.get('data', {}).get('issueCreate', {})
+if issue.get('success'):
+    i = issue['issue']
+    print(f\"{i['identifier']}: {i['title']}\")
+    print(f\"  {i['url']}\")
+else:
+    errs = d.get('errors') or [{}]
+    print('error:', errs[0].get('message', json.dumps(d)), file=sys.stderr)
+    sys.exit(1)
+" || return 1
+}
+
 case "${1:-}" in
-  get)   shift; cmd_get   "$@" ;;
-  start) shift; cmd_start "$@" ;;
+  get)    shift; cmd_get    "$@" ;;
+  start)  shift; cmd_start  "$@" ;;
+  create) shift; cmd_create "$@" ;;
   *)
-    echo "Usage: linear get <TICKET-ID | URL>" >&2
-    echo "       linear start <TICKET-ID | URL>" >&2
+    echo "Usage: linear get    <TICKET-ID | URL>" >&2
+    echo "       linear start  <TICKET-ID | URL>" >&2
+    echo "       linear create -t TITLE [-d DESC] [-l LABEL] [-p PRIORITY] [--project PROJECT]" >&2
     exit 1
     ;;
 esac
