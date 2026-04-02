@@ -133,7 +133,7 @@ cmd_create() {
   projects_resp=$(_graphql '{"query":"{ projects { nodes { id name teams { nodes { id } } } } }"}')
 
   local team_id project_id
-  team_id=$(echo "$projects_resp" | python3 -c "
+  team_id=$(echo "$projects_resp" | LIN_PROJECT="$project" python3 -c "
 import sys, json, os
 d = json.load(sys.stdin)
 for p in d['data']['projects']['nodes']:
@@ -141,15 +141,15 @@ for p in d['data']['projects']['nodes']:
         nodes = p['teams']['nodes']
         if nodes: print(nodes[0]['id'])
         break
-" LIN_PROJECT="$project")
+")
 
-  project_id=$(echo "$projects_resp" | python3 -c "
+  project_id=$(echo "$projects_resp" | LIN_PROJECT="$project" python3 -c "
 import sys, json, os
 d = json.load(sys.stdin)
 for p in d['data']['projects']['nodes']:
     if p['name'] == os.environ['LIN_PROJECT']:
         print(p['id']); break
-" LIN_PROJECT="$project")
+")
 
   [[ -z "$team_id" ]] && { echo "error: project '$project' not found or has no team" >&2; return 1; }
 
@@ -158,20 +158,27 @@ for p in d['data']['projects']['nodes']:
   if [[ -n "$label" ]]; then
     local labels_resp
     labels_resp=$(_graphql '{"query":"{ issueLabels { nodes { id name } } }"}')
-    label_id=$(echo "$labels_resp" | python3 -c "
+    label_id=$(echo "$labels_resp" | LIN_LABEL="$label" python3 -c "
 import sys, json, os
 d = json.load(sys.stdin)
 name = os.environ['LIN_LABEL'].lower()
 for l in d['data']['issueLabels']['nodes']:
     if l['name'].lower() == name:
         print(l['id']); break
-" LIN_LABEL="$label")
+")
     [[ -z "$label_id" ]] && echo "warning: label '$label' not found, creating without label" >&2
   fi
 
   # Build mutation payload safely via Python
   local payload
-  payload=$(python3 -c "
+  payload=$(
+    LIN_TITLE="$title" \
+    LIN_TEAM="$team_id" \
+    LIN_PRIORITY="$priority_int" \
+    LIN_DESC="$description" \
+    LIN_PROJECT="$project_id" \
+    LIN_LABEL="$label_id" \
+    python3 -c "
 import json, os
 inp = {
     'title':     os.environ['LIN_TITLE'],
@@ -180,18 +187,12 @@ inp = {
 }
 if os.environ.get('LIN_DESC'):    inp['description'] = os.environ['LIN_DESC']
 if os.environ.get('LIN_PROJECT'): inp['projectId']   = os.environ['LIN_PROJECT']
-if os.environ.get('LIN_LABEL'):   inp['labelIds']     = [os.environ['LIN_LABEL']]
+if os.environ.get('LIN_LABEL'):   inp['labelIds']    = [os.environ['LIN_LABEL']]
 print(json.dumps({
     'query': 'mutation Create(\$i: IssueCreateInput!) { issueCreate(input: \$i) { success issue { identifier title url } } }',
     'variables': {'i': inp}
 }))
-" \
-    LIN_TITLE="$title" \
-    LIN_TEAM="$team_id" \
-    LIN_PRIORITY="$priority_int" \
-    LIN_DESC="$description" \
-    LIN_PROJECT="$project_id" \
-    LIN_LABEL="$label_id")
+")
 
   local resp
   resp=$(_graphql "$payload")
