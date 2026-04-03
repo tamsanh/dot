@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# start-fetchers — start background fetchers and show live data output
+# Run from the project directory. Fetchers survive this process exiting.
+
+claude_data="$HOME/.stats/claude-tokens"
+gh_data_dir="$HOME/.stats/github-watch-$(printf '%s' "$PWD" | cksum | awk '{print $1}')"
+
+# Start fetchers; both are single-instance so safe to call if already running
+claude-tokens-fetcher & disown $!
+github-watch-fetcher & disown $!
+
+_format_reset() {
+  local epoch="$1"
+  [[ ! "$epoch" =~ ^[0-9]+$ ]] && printf '----' && return
+  local secs=$(( epoch - $(date +%s) ))
+  if [[ $secs -le 0 ]]; then
+    printf '----'
+  elif [[ $secs -ge 3600 ]]; then
+    printf '%dh%dm' $(( secs / 3600 )) $(( (secs % 3600) / 60 ))
+  elif [[ $secs -ge 60 ]]; then
+    printf '%dm%ds' $(( secs / 60 )) $(( secs % 60 ))
+  else
+    printf '%ds' "$secs"
+  fi
+}
+
+prev_snapshot=""
+trap 'exit' INT TERM
+
+while true; do
+  cur_pct='--'
+  cur_cost='$---'
+  cur_reset='----'
+  if [[ -f "$claude_data" ]]; then
+    cur_pct=$(sed -n '1p' "$claude_data")
+    cur_cost=$(sed -n '2p' "$claude_data")
+    cur_reset=$(_format_reset "$(sed -n '3p' "$claude_data")")
+  fi
+
+  cur_rate='----'
+  [[ -f "$gh_data_dir/rate" ]] && cur_rate=$(< "$gh_data_dir/rate")
+
+  snapshot="${cur_pct}${cur_cost}${cur_reset}${cur_rate}"
+  if [[ "$snapshot" != "$prev_snapshot" ]]; then
+    prev_snapshot="$snapshot"
+    clear
+
+    printf "claude-tokens\n"
+    printf "  usage:  %s%%\n"  "$cur_pct"
+    printf "  cost:   %s\n"   "$cur_cost"
+    printf "  reset:  %s\n\n" "$cur_reset"
+
+    printf "github-watch-fetcher\n"
+    printf "  rate:   %s\n" "$cur_rate"
+    if [[ -f "$gh_data_dir/gh_lines" && -s "$gh_data_dir/gh_lines" ]]; then
+      printf "  checks:\n"
+      while IFS=$'\t' read -r status conclusion _name _branch sha _app rawname; do
+        [[ "$conclusion" == "cancelled" || "$conclusion" == "skipped" ]] && continue
+        local_icon="○"
+        case "$status" in
+        in_progress) local_icon="●" ;;
+        completed)
+          case "$conclusion" in
+          success) local_icon="✓" ;;
+          failure) local_icon="✗" ;;
+          esac ;;
+        esac
+        printf "    %s  %-7s  %s\n" "$local_icon" "${sha:0:7}" "${rawname:0:24}"
+      done < "$gh_data_dir/gh_lines"
+    fi
+  fi
+
+  sleep 1
+done

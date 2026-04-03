@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # claude-tokens — Claude Code 5-hour block usage as a vertical bar
-# Usage: claude-tokens [interval-seconds]  (default: 30)
-# Set CLAUDE_BLOCK_MAX (USD, default 10) to control when bar hits 95% full.
-# Requires ccusage: npm install -g ccusage  (falls back to npx)
+# Reads from claude-tokens-fetcher; start that first (or via watch-pane).
+# Usage: claude-tokens
 
-interval="${1:-30}"
+data_file="$HOME/.stats/claude-tokens"
 
 _get_height() {
   local lines
@@ -21,86 +20,32 @@ _bar_color() {
   printf 'BAR_%s' "${PWD##*/}" | cksum | awk '{print ($1 % 200) + 50}'
 }
 
-_ccusage() {
-  if command -v ccusage &>/dev/null; then
-    ccusage "$@"
-  elif command -v bunx &>/dev/null; then
-    bunx ccusage "$@"
-  else
-    npx --yes ccusage@latest "$@"
-  fi
-}
-
-in_tmux=0
-[[ -n "$TMUX" ]] && in_tmux=1
-
 usage_pct=0
 reset_epoch=0
-cost_str="$---"
+cost_str='$---'
 
-_load_usage() {
-  local json
-  json=$(_ccusage blocks --json 2>/dev/null)
-  [[ -z "$json" ]] && return
-
-  local parsed
-  parsed=$(printf '%s\n' "$json" | CLAUDE_BLOCK_MAX="${CLAUDE_BLOCK_MAX:-}" python3 -c '
-import sys, json, os
-from datetime import datetime, timezone
-
-d = json.load(sys.stdin)
-blocks = [b for b in d.get("blocks", []) if not b.get("isGap")]
-active = next((b for b in blocks if b.get("isActive")), blocks[-1] if blocks else None)
-if not active:
-    sys.exit(1)
-
-cost = float(active.get("costUSD", 0))
-
-max_env = os.environ.get("CLAUDE_BLOCK_MAX", "")
-if max_env:
-    max_cost = float(max_env)
-else:
-    completed = sorted(float(b.get("costUSD", 0)) for b in blocks if not b.get("isActive") and b.get("costUSD", 0) > 0.01)
-    if completed:
-        max_cost = completed[int(len(completed) * 0.9)]
-    else:
-        max_cost = 10.0
-
-pct = min(int(cost / max_cost * 100), 100) if max_cost > 0 else 0
-
-end = active.get("endTime", "")
-epoch = 0
-if end:
-    try:
-        dt = datetime.fromisoformat(end.replace("Z", "+00:00"))
-        epoch = int(dt.timestamp())
-    except Exception:
-        pass
-
-print(pct)
-print(f"${cost:.2f}")
-print(epoch)
-')
-
-  [[ -z "$parsed" ]] && return
-
-  usage_pct=$(printf '%s\n' "$parsed" | sed -n '1p')
-  cost_str=$(printf '%s\n' "$parsed" | sed -n '2p')
+_load_data() {
+  [[ ! -f "$data_file" ]] && return
+  local content
+  content=$(< "$data_file")
+  [[ -z "$content" ]] && return
+  usage_pct=$(sed -n '1p' <<< "$content")
+  cost_str=$(sed -n '2p'  <<< "$content")
   local epoch
-  epoch=$(printf '%s\n' "$parsed" | sed -n '3p')
+  epoch=$(sed -n '3p' <<< "$content")
   [[ "$epoch" =~ ^[0-9]+$ ]] && reset_epoch="$epoch"
 }
 
 _format_reset() {
-  local secs=$((reset_epoch - $(date +%s)))
+  local secs=$(( reset_epoch - $(date +%s) ))
   if [[ $secs -le 0 ]]; then
     printf '----'
     return
   fi
   if [[ $secs -ge 3600 ]]; then
-    printf '%dh%dm' $((secs / 3600)) $(((secs % 3600) / 60))
+    printf '%dh%dm' $(( secs / 3600 )) $(( (secs % 3600) / 60 ))
   elif [[ $secs -ge 60 ]]; then
-    printf '%dm%ds' $((secs / 60)) $((secs % 60))
+    printf '%dm%ds' $(( secs / 60 )) $(( secs % 60 ))
   else
     printf '%ds' "$secs"
   fi
@@ -118,7 +63,8 @@ _redraw() {
   local reset_str
   reset_str=$(_format_reset)
 
-  local snapshot="${usage_pct}:${reset_epoch}:${cost_str}:${height}"
+  # Include reset_str so the countdown triggers a redraw each second
+  local snapshot="${usage_pct}:${cost_str}:${reset_str}:${height}"
   if [[ "$snapshot" == "$prev_snapshot" && "$window_resized" -eq 0 ]]; then
     return
   fi
@@ -135,16 +81,15 @@ _redraw() {
   local bar_height=$(( height - 5 ))
   [[ $bar_height -lt 1 ]] && bar_height=1
 
-  # Bar fills top→bottom; completely full = 95% of CLAUDE_BLOCK_MAX spent
-  local filled=$((bar_height * usage_pct / 95))
+  local filled=$(( bar_height * usage_pct / 95 ))
   [[ $filled -gt $bar_height ]] && filled=$bar_height
 
   clear
   printf "\033[1;48;5;%sm%-8s\033[0m\n" "$dir_color" "$dir"
 
   local i
-  for ((i = 0; i < bar_height; i++)); do
-    if ((i < filled)); then
+  for (( i = 0; i < bar_height; i++ )); do
+    if (( i < filled )); then
       printf "\033[38;5;%sm%s\033[0m\n" "$bar_color" "████████"
     else
       echo ""
@@ -156,11 +101,11 @@ _redraw() {
   printf "\033[38;5;%sm%s\033[0m\n" "$dir_color" "${cost_str:0:8}"
 }
 
-_load_usage
+_load_data
 _redraw
 
 while true; do
-  sleep "$interval"
-  _load_usage
+  sleep 1
+  _load_data
   _redraw
 done

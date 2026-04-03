@@ -1,41 +1,31 @@
 #!/usr/bin/env bash
-# git-pull-watch — Periodically pull origin main, report only when HEAD changes
-# Usage: git-pull-watch [interval-in-seconds]  (default: 10s; entry count auto-fits terminal)
+# github-watch — display GitHub PR check statuses
+# Git operations run locally; GitHub API data read from github-watch-fetcher.
+# Usage: github-watch [interval-seconds]  (default: 10)
 
 interval="${1:-10}"
+data_dir="$HOME/.stats/github-watch-$(printf '%s' "$PWD" | cksum | awk '{print $1}')"
 
 in_tmux=0
 [[ -n "$TMUX" ]] && in_tmux=1
 
+git_limit=5
+action_limit=5
+entries=()
+gh_lines=""
+gh_rate_remaining=""
+
 _recalc_limits() {
   local lines
-  # stty size </dev/tty queries the controlling terminal directly,
-  # even when stdin/stdout are redirected (e.g. in tmux panes).
   lines=$(stty size </dev/tty 2>/dev/null | cut -d' ' -f1)
   [[ -z "$lines" || "$lines" -le 0 ]] && lines=$(tput lines 2>/dev/null || echo 40)
   # Fixed lines: 6 normally (title + rate + 2 blanks + div + blank); 5 in tmux (title hidden)
   local fixed=$(( in_tmux ? 5 : 6 ))
   local count=$(( (lines - fixed) / 3 ))
   [[ $count -lt 2 ]] && count=2
-  git_limit=$((count / 2))
-  action_limit=$((count - count / 2))
+  git_limit=$(( count / 2 ))
+  action_limit=$(( count - count / 2 ))
 }
-
-# Derive a dark background color from the directory name and restore on exit
-_dir_bg_hex() {
-  local checksum
-  checksum=$(printf '%s' "${PWD##*/}" | cksum | awk '{print $1}')
-  python3 -c "
-import colorsys
-h = $checksum % 360
-r, g, b = colorsys.hls_to_rgb(h / 360, 0.12, 0.25)
-print(f'{int(r*255):02x}{int(g*255):02x}{int(b*255):02x}')
-"
-}
-
-## Uncomment to change the background color
-# printf "\033]11;#2e2e4e\007"
-# trap 'printf "\033]111;\007"' EXIT
 
 _sha_color() {
   printf '%s' "$1" | cksum | awk '{print ($1 % 200) + 50}'
@@ -43,24 +33,18 @@ _sha_color() {
 
 _load_entries() {
   entries=()
-  # Use $'\x1f' (unit separator) so spaces in subjects don't break field parsing.
-  # %P gives space-separated parent SHAs; word count >= 2 means merge commit.
-  # Scan without a hard limit so filtering doesn't starve the entry count.
   while IFS=$'\x1f' read -r sha parents time subject && [[ ${#entries[@]} -lt $git_limit ]]; do
     local ticket
     ticket=$(printf '%s' "$subject" | grep -ioE '[A-Z]{2,10}-[0-9]+' | head -1 | tr '[:lower:]' '[:upper:]')
     local num_parents
     num_parents=$(echo "$parents" | wc -w)
-    # Skip non-merge commits that have no ticket number
     [[ $num_parents -lt 2 && -z "$ticket" ]] && continue
     local short="${sha:0:7}"
     local color
     color=$(_sha_color "$short")
-    local display="${ticket:-$short}"
-    entries+=("${time}|${display}|${color}")
+    entries+=("${time}|${ticket:-$short}|${color}")
   done < <(git log main --first-parent --format="%H%x1f%P%x1f%cd%x1f%s" --date=format:"%H:%M:%S" 2>/dev/null)
 
-  # Fallback: if nothing matched, show raw commits
   if [[ ${#entries[@]} -eq 0 ]]; then
     while IFS=$'\x1f' read -r sha time && [[ ${#entries[@]} -lt $git_limit ]]; do
       local short="${sha:0:7}"
@@ -71,103 +55,9 @@ _load_entries() {
   fi
 }
 
-gh_lines=""
-gh_rate_remaining=""
-
-# Derive owner/repo from git remote without an API call
-_gh_repo() {
-  local url
-  url=$(git remote get-url origin 2>/dev/null) || return
-  url="${url%.git}"
-  [[ "$url" =~ github\.com[:/](.+) ]] && printf '%s' "${BASH_REMATCH[1]}"
-}
-
-# Per-script-run cache dir: check-run results keyed by pr_num+sha
-_cache_dir=""
-
-_cleanup_and_exit() {
-  trap '' INT TERM          # Prevent re-entry if SIGTERM hits us via kill 0
-  [[ -n "$_cache_dir" ]] && rm -rf "$_cache_dir"
-  kill 0 2>/dev/null        # Kill any background gh subshells
-  exit
-}
-trap '[[ -n "$_cache_dir" ]] && rm -rf "$_cache_dir"' EXIT
-trap '_cleanup_and_exit' INT TERM
-
-_wait_all() {
-  # Retry wait in case SIGWINCH interrupts it before all jobs finish
-  local _w=("$@")
-  while [[ ${#_w[@]} -gt 0 ]]; do
-    wait "${_w[@]}"
-    local _a=()
-    for _p in "${_w[@]}"; do kill -0 "$_p" 2>/dev/null && _a+=("$_p"); done
-    _w=("${_a[@]}")
-  done
-}
-
-# Fetch PR check-runs and rate limit in parallel — one background job per PR.
-# Results are cached by {pr_num}:{head_sha} so steady-state only costs one
-# `gh pr list` call per cycle instead of 61+.
-_load_gh() {
-  [[ -z "$_cache_dir" ]] && _cache_dir=$(mktemp -d)
-
-  # Rate limit: synchronous single call (fast, no temp file needed)
-  # graphql.remaining reflects gh pr list calls each cycle; core only drops on cache misses
-  local r
-  r=$(gh api rate_limit --jq '.resources.graphql.remaining' 2>/dev/null)
-  [[ -n "$r" ]] && gh_rate_remaining="$r"
-
-  local tmpdir
-  tmpdir=$(mktemp -d) || return
-  local pids=() pr_order=()
-
-  local repo
-  repo=$(_gh_repo)
-
-  if [[ -n "$repo" ]]; then
-    while IFS=$'\t' read -r pr_num branch sha; do
-      pr_order+=("$pr_num")
-      local cache_file="$_cache_dir/${pr_num}_${sha:0:12}"
-      if [[ -f "$cache_file" ]]; then
-        # Cache hit — no API calls needed for this PR
-        cp "$cache_file" "$tmpdir/$pr_num"
-      else
-        # Cache miss — fetch in background
-        (
-          local seen="" lines=""
-          while IFS= read -r c_sha; do
-            local short="${c_sha:0:7}"
-            while IFS=$'\t' read -r chk_name status conclusion app; do
-              [[ "$seen" == *"|$chk_name|"* ]] && continue
-              seen+="|$chk_name|"
-              lines+=$'\n'"$status"$'\t'"$conclusion"$'\t'"$chk_name"$'\t'"$branch"$'\t'"$short"$'\t'"$app"$'\t'"$chk_name"
-            done < <(gh api "repos/$repo/commits/$c_sha/check-runs" \
-              --jq '.check_runs[]
-                    | select(.status == "in_progress" or .status == "completed")
-                    | [.name, .status, (.conclusion // ""), (.app.name // "")]
-                    | @tsv' 2>/dev/null)
-          done < <(gh api "repos/$repo/pulls/$pr_num/commits" \
-            --jq 'reverse | .[0:5] | .[].sha' 2>/dev/null)
-          local result="${lines#$'\n'}"
-          printf '%s' "$result" > "$tmpdir/$pr_num"
-          # Only cache when no checks are still in_progress
-          grep -qF $'\tin_progress\t' <<< "$result" || \
-            printf '%s' "$result" > "$cache_file"
-        ) &
-        pids+=($!)
-      fi
-    done < <(gh pr list --json number,headRefName,headRefOid --limit 10 2>/dev/null \
-      | jq -r '.[] | [.number, .headRefName, .headRefOid] | @tsv')
-  fi
-
-  _wait_all "${pids[@]}"
-
-  local all=""
-  for pr_num in "${pr_order[@]}"; do
-    [[ -s "$tmpdir/$pr_num" ]] && all+=$'\n'"$(< "$tmpdir/$pr_num")"
-  done
-  rm -rf "$tmpdir"
-  gh_lines="${all#$'\n'}"
+_load_gh_data() {
+  [[ -f "$data_dir/rate"     ]] && gh_rate_remaining=$(< "$data_dir/rate")
+  [[ -f "$data_dir/gh_lines" ]] && gh_lines=$(< "$data_dir/gh_lines")
 }
 
 _draw_actions() {
@@ -175,53 +65,34 @@ _draw_actions() {
   local i=0
   while IFS=$'\t' read -r status conclusion title branch headsha wfname rawname && [[ $i -lt $action_limit ]]; do
     [[ "$conclusion" == "cancelled" || "$conclusion" == "skipped" ]] && continue
-    ((i++))
-    local color icon
+    (( i++ ))
+    local color
     case "$status" in
-    in_progress)
-      color=214
-      icon="●"
-      ;;
-    queued | waiting)
-      color=172
-      icon="○"
-      ;;
+    in_progress)    color=214 ;;
+    queued|waiting) color=172 ;;
     completed)
       case "$conclusion" in
-      success)
-        color=82
-        icon="✓"
-        ;;
-      failure)
-        color=196
-        icon="✗"
-        ;;
-      *)
-        color=244
-        icon="?"
-        ;;
-      esac
-      ;;
-    *)
-      color=244
-      icon="?"
-      ;;
+      success) color=82  ;;
+      failure) color=196 ;;
+      *)       color=244 ;;
+      esac ;;
+    *) color=244 ;;
     esac
     local ticket
     ticket=$(printf '%s' "$branch $title" | grep -ioE '[A-Z]{2,10}-[0-9]+' | head -1 | tr '[:lower:]' '[:upper:]')
     local ref="${ticket:-${headsha:0:7}}"
     local display_name="${rawname:-$wfname}"
-    # Fallback: first word of displayTitle (e.g. "ci" from "ci #605: Pull request …")
     [[ -z "$display_name" && -n "$title" ]] && display_name="${title%% *}"
     printf "\033[1;38;5;%sm%s\033[0m\n" "$color" "${ref:0:8}"
-    printf "\033[38;5;%sm%s\033[0m\n" "$color" "${display_name:0:8}"
+    printf "\033[38;5;%sm%s\033[0m\n"   "$color" "${display_name:0:8}"
     echo ""
-  done <<<"$gh_lines"
+  done <<< "$gh_lines"
 }
 
 prev_snapshot=""
 window_resized=0
 trap 'window_resized=1' SIGWINCH
+trap 'exit' INT TERM
 
 _redraw() {
   local current_snapshot="${entries[*]}${gh_lines}${gh_rate_remaining}"
@@ -235,18 +106,20 @@ _redraw() {
   dir="${dir:0:8}"
   local dir_color
   dir_color=$(printf '%s' "$dir" | cksum | awk '{print ($1 % 200) + 50}')
+
   clear
   if [[ $in_tmux -eq 0 ]]; then
     printf "\033[1;48;5;%sm%-8s\033[0m\n" "$dir_color" "$dir"
   fi
+
   local rate_color=82
-  local rate_val="$gh_rate_remaining"
-  [[ -z "$rate_val" ]] && rate_val="----"
-  [[ "$rate_val" =~ ^[0-9]+$ && "$rate_val" -lt 500 ]] && rate_color=196
+  local rate_val="${gh_rate_remaining:-????}"
+  [[ "$rate_val" =~ ^[0-9]+$ && "$rate_val" -lt 500  ]] && rate_color=196
   [[ "$rate_val" =~ ^[0-9]+$ && "$rate_val" -ge 500 && "$rate_val" -lt 1500 ]] && rate_color=214
   printf "\033[38;5;%sm%s\033[0m\n" "$rate_color" "$rate_val"
   echo ""
   echo ""
+
   for entry in "${entries[@]}"; do
     local time="${entry%%|*}"
     local rest="${entry#*|}"
@@ -256,26 +129,23 @@ _redraw() {
     printf "\033[1;38;5;%sm%s\033[0m\n" "$c" "$sha"
     echo ""
   done
+
   printf "\033[1;38;5;240m%s\033[0m\n" "────────"
   echo ""
   _draw_actions
 }
 
 _recalc_limits
+git pull origin main &>/dev/null
 _load_entries
-_load_gh
-last_sha=$(git rev-parse origin/main 2>/dev/null)
+_load_gh_data
 _redraw
 
 while true; do
+  sleep "$interval"
   _recalc_limits
   git pull origin main &>/dev/null
   _load_entries
-  _load_gh
-  current_sha=$(git rev-parse origin/main 2>/dev/null)
-  if [[ "$current_sha" != "$last_sha" ]]; then
-    last_sha="$current_sha"
-  fi
+  _load_gh_data
   _redraw
-  sleep "$interval"
 done

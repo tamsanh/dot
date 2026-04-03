@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# github-watch-fetcher — background GitHub API fetcher for github-watch display
+# Usage: github-watch-fetcher [interval-seconds]  (default: 10)
+# Run from the project directory.
+
+interval="${1:-10}"
+data_dir="$HOME/.stats/github-watch-$(printf '%s' "$PWD" | cksum | awk '{print $1}')"
+pid_file="${data_dir}.pid"
+
+if [[ -f "$pid_file" ]]; then
+  existing_pid=$(< "$pid_file")
+  if kill -0 "$existing_pid" 2>/dev/null; then
+    exit 0
+  fi
+fi
+mkdir -p "$data_dir"
+printf '%s' "$$" > "$pid_file"
+
+_cache_dir=""
+
+_cleanup_and_exit() {
+  trap '' INT TERM
+  rm -f "$pid_file"
+  [[ -n "$_cache_dir" ]] && rm -rf "$_cache_dir"
+  kill 0 2>/dev/null
+  exit
+}
+trap 'rm -f "$pid_file"; [[ -n "$_cache_dir" ]] && rm -rf "$_cache_dir"' EXIT
+trap '_cleanup_and_exit' INT TERM
+
+_wait_all() {
+  local _w=("$@")
+  while [[ ${#_w[@]} -gt 0 ]]; do
+    wait "${_w[@]}"
+    local _a=()
+    for _p in "${_w[@]}"; do kill -0 "$_p" 2>/dev/null && _a+=("$_p"); done
+    _w=("${_a[@]}")
+  done
+}
+
+_gh_repo() {
+  local url
+  url=$(git remote get-url origin 2>/dev/null) || return
+  url="${url%.git}"
+  [[ "$url" =~ github\.com[:/](.+) ]] && printf '%s' "${BASH_REMATCH[1]}"
+}
+
+_fetch() {
+  [[ -z "$_cache_dir" ]] && _cache_dir=$(mktemp -d)
+
+  local r
+  r=$(gh api rate_limit --jq '.resources.graphql.remaining' 2>/dev/null)
+  [[ -n "$r" ]] && printf '%s\n' "$r" > "${data_dir}/rate"
+
+  local tmpdir
+  tmpdir=$(mktemp -d) || return
+  local pids=() pr_order=()
+  local repo
+  repo=$(_gh_repo)
+
+  if [[ -n "$repo" ]]; then
+    while IFS=$'\t' read -r pr_num branch sha; do
+      pr_order+=("$pr_num")
+      local cache_file="$_cache_dir/${pr_num}_${sha:0:12}"
+      if [[ -f "$cache_file" ]]; then
+        cp "$cache_file" "$tmpdir/$pr_num"
+      else
+        (
+          local seen="" lines=""
+          while IFS= read -r c_sha; do
+            local short="${c_sha:0:7}"
+            while IFS=$'\t' read -r chk_name status conclusion app; do
+              [[ "$seen" == *"|$chk_name|"* ]] && continue
+              seen+="|$chk_name|"
+              lines+=$'\n'"$status"$'\t'"$conclusion"$'\t'"$chk_name"$'\t'"$branch"$'\t'"$short"$'\t'"$app"$'\t'"$chk_name"
+            done < <(gh api "repos/$repo/commits/$c_sha/check-runs" \
+              --jq '.check_runs[]
+                    | select(.status == "in_progress" or .status == "completed")
+                    | [.name, .status, (.conclusion // ""), (.app.name // "")]
+                    | @tsv' 2>/dev/null)
+          done < <(gh api "repos/$repo/pulls/$pr_num/commits" \
+            --jq 'reverse | .[0:5] | .[].sha' 2>/dev/null)
+          local result="${lines#$'\n'}"
+          printf '%s' "$result" > "$tmpdir/$pr_num"
+          grep -qF $'\tin_progress\t' <<< "$result" || \
+            printf '%s' "$result" > "$cache_file"
+        ) &
+        pids+=($!)
+      fi
+    done < <(gh pr list --json number,headRefName,headRefOid --limit 10 2>/dev/null \
+      | jq -r '.[] | [.number, .headRefName, .headRefOid] | @tsv')
+  fi
+
+  _wait_all "${pids[@]}"
+
+  local all=""
+  for pr_num in "${pr_order[@]}"; do
+    [[ -s "$tmpdir/$pr_num" ]] && all+=$'\n'"$(< "$tmpdir/$pr_num")"
+  done
+  rm -rf "$tmpdir"
+  printf '%s\n' "${all#$'\n'}" > "${data_dir}/gh_lines"
+}
+
+_fetch
+while true; do
+  sleep "$interval"
+  _fetch
+done

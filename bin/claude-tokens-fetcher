@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# claude-tokens-fetcher — background fetcher for claude-tokens display
+# Usage: claude-tokens-fetcher [interval-seconds]  (default: 30)
+# Set CLAUDE_BLOCK_MAX (USD) to override auto-scaling.
+# Requires ccusage: npm install -g ccusage  (falls back to bunx/npx)
+
+interval="${1:-30}"
+data_file="$HOME/.stats/claude-tokens"
+pid_file="$HOME/.stats/claude-tokens-fetcher.pid"
+mkdir -p "$HOME/.stats"
+
+if [[ -f "$pid_file" ]]; then
+  existing_pid=$(< "$pid_file")
+  if kill -0 "$existing_pid" 2>/dev/null; then
+    exit 0
+  fi
+fi
+printf '%s' "$$" > "$pid_file"
+trap 'rm -f "$pid_file"' EXIT
+trap 'rm -f "$pid_file"; exit' INT TERM
+
+_ccusage() {
+  if command -v ccusage &>/dev/null; then
+    ccusage "$@"
+  elif command -v bunx &>/dev/null; then
+    bunx ccusage "$@"
+  else
+    npx --yes ccusage@latest "$@"
+  fi
+}
+
+_fetch() {
+  local json
+  json=$(_ccusage blocks --json 2>/dev/null)
+  [[ -z "$json" ]] && return
+
+  local parsed
+  parsed=$(printf '%s\n' "$json" | CLAUDE_BLOCK_MAX="${CLAUDE_BLOCK_MAX:-}" python3 -c '
+import sys, json, os
+from datetime import datetime, timezone
+
+d = json.load(sys.stdin)
+blocks = [b for b in d.get("blocks", []) if not b.get("isGap")]
+active = next((b for b in blocks if b.get("isActive")), blocks[-1] if blocks else None)
+if not active:
+    sys.exit(1)
+
+cost = float(active.get("costUSD", 0))
+
+max_env = os.environ.get("CLAUDE_BLOCK_MAX", "")
+if max_env:
+    max_cost = float(max_env)
+else:
+    completed = sorted(float(b.get("costUSD", 0)) for b in blocks if not b.get("isActive") and b.get("costUSD", 0) > 0.01)
+    if completed:
+        max_cost = completed[int(len(completed) * 0.9)]
+    else:
+        max_cost = 10.0
+
+pct = min(int(cost / max_cost * 100), 100) if max_cost > 0 else 0
+
+end = active.get("endTime", "")
+epoch = 0
+if end:
+    try:
+        dt = datetime.fromisoformat(end.replace("Z", "+00:00"))
+        epoch = int(dt.timestamp())
+    except Exception:
+        pass
+
+print(pct)
+print(f"${cost:.2f}")
+print(epoch)
+')
+  [[ -z "$parsed" ]] && return
+  printf '%s\n' "$parsed" > "${data_file}.tmp" && mv "${data_file}.tmp" "$data_file"
+}
+
+_fetch
+while true; do
+  sleep "$interval"
+  _fetch
+done
