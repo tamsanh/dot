@@ -9,6 +9,8 @@ data_dir="$HOME/.stats/github-watch-$(printf '%s' "$PWD" | cksum | awk '{print $
 in_tmux=0
 [[ -n "$TMUX" ]] && in_tmux=1
 
+tput civis 2>/dev/null  # hide cursor
+
 git_limit=5
 action_limit=5
 entries=()
@@ -19,8 +21,8 @@ _recalc_limits() {
   local lines
   lines=$(stty size </dev/tty 2>/dev/null | cut -d' ' -f1)
   [[ -z "$lines" || "$lines" -le 0 ]] && lines=$(tput lines 2>/dev/null || echo 40)
-  # Fixed lines: 6 normally (title + rate + 2 blanks + div + blank); 5 in tmux (title hidden)
-  local fixed=$(( in_tmux ? 5 : 6 ))
+  # Fixed lines: 5 normally (title + rate + 2 blanks + div); 4 in tmux (title hidden)
+  local fixed=$(( in_tmux ? 4 : 5 ))
   local count=$(( (lines - fixed) / 3 ))
   [[ $count -lt 2 ]] && count=2
   git_limit=$(( count / 2 ))
@@ -92,9 +94,13 @@ _draw_actions() {
 prev_snapshot=""
 window_resized=0
 trap 'window_resized=1' SIGWINCH
-trap 'exit' INT TERM
+trap 'tput cnorm 2>/dev/null; exit' INT TERM
 
 _redraw() {
+  local height
+  height=$(stty size </dev/tty 2>/dev/null | cut -d' ' -f1)
+  [[ -z "$height" || "$height" -le 0 ]] && height=$(tput lines 2>/dev/null || echo 40)
+
   local current_snapshot="${entries[*]}${gh_lines}${gh_rate_remaining}"
   if [[ "$current_snapshot" == "$prev_snapshot" && $window_resized -eq 0 ]]; then
     return
@@ -131,8 +137,9 @@ _redraw() {
   done
 
   printf "\033[1;38;5;240m%s\033[0m\n" "────────"
-  echo ""
   _draw_actions
+  # Park cursor at last row without a newline so the terminal doesn't scroll
+  printf "\033[%d;1H" "$height"
 }
 
 _recalc_limits

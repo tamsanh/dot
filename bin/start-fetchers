@@ -9,6 +9,9 @@ gh_data_dir="$HOME/.stats/github-watch-$(printf '%s' "$PWD" | cksum | awk '{prin
 claude-tokens-fetcher & disown $!
 github-watch-fetcher & disown $!
 
+RED=$'\033[91m'; YEL=$'\033[93m'; GRN=$'\033[92m'
+CYN=$'\033[96m'; BLD=$'\033[1m';  DIM=$'\033[2m';  RST=$'\033[0m'
+
 _format_reset() {
   local epoch="$1"
   [[ ! "$epoch" =~ ^[0-9]+$ ]] && printf '----' && return
@@ -22,6 +25,50 @@ _format_reset() {
   else
     printf '%ds' "$secs"
   fi
+}
+
+# Render a string of digits as 3-line ASCII art (bash 3 compatible)
+_big_digits() {
+  local s="$1" r1="" r2="" r3="" c i seg1 seg2 seg3
+  for (( i=0; i<${#s}; i++ )); do
+    c="${s:$i:1}"
+    case "$c" in
+      0) seg1=" _ "; seg2="| |"; seg3="|_|" ;;
+      1) seg1="   "; seg2=" | "; seg3=" | " ;;
+      2) seg1=" _ "; seg2=" _|"; seg3="|_ " ;;
+      3) seg1=" _ "; seg2=" _|"; seg3=" _|" ;;
+      4) seg1="   "; seg2="|_|"; seg3="  |" ;;
+      5) seg1=" _ "; seg2="|_ "; seg3=" _|" ;;
+      6) seg1=" _ "; seg2="|_ "; seg3="|_|" ;;
+      7) seg1=" _ "; seg2="  |"; seg3="  |" ;;
+      8) seg1=" _ "; seg2="|_|"; seg3="|_|" ;;
+      9) seg1=" _ "; seg2="|_|"; seg3=" _|" ;;
+      *) seg1="   "; seg2="   "; seg3="   " ;;
+    esac
+    r1+="$seg1 "
+    r2+="$seg2 "
+    r3+="$seg3 "
+  done
+  printf '%s\n%s\n%s\n' "$r1" "$r2" "$r3"
+}
+
+_progress_bar() {
+  local pct="$1" width=28 i
+  [[ ! "$pct" =~ ^[0-9]+$ ]] && pct=0
+  local filled=$(( pct * width / 100 ))
+  [[ $filled -gt $width ]] && filled=$width
+  local empty=$(( width - filled )) bar=""
+  for (( i=0; i<filled; i++ )); do bar+="█"; done
+  for (( i=0; i<empty; i++ )); do bar+="░"; done
+  printf '%s' "$bar"
+}
+
+_pct_color() {
+  local pct="$1"
+  [[ ! "$pct" =~ ^[0-9]+$ ]] && printf '%s' "$DIM" && return
+  (( pct >= 80 )) && printf '%s' "$RED" && return
+  (( pct >= 50 )) && printf '%s' "$YEL" && return
+  printf '%s' "$GRN"
 }
 
 prev_snapshot=""
@@ -41,33 +88,63 @@ while true; do
   [[ -f "$gh_data_dir/rate" ]] && cur_rate=$(< "$gh_data_dir/rate")
 
   snapshot="${cur_pct}${cur_cost}${cur_reset}${cur_rate}"
+  [[ -f "$gh_data_dir/gh_lines" ]] && snapshot+=$(< "$gh_data_dir/gh_lines")
+
   if [[ "$snapshot" != "$prev_snapshot" ]]; then
     prev_snapshot="$snapshot"
     clear
 
-    printf "claude-tokens\n"
-    printf "  usage:  %s%%\n"  "$cur_pct"
-    printf "  cost:   %s\n"   "$cur_cost"
-    printf "  reset:  %s\n\n" "$cur_reset"
+    pct_num="${cur_pct//%/}"
+    color=$(_pct_color "$pct_num")
 
-    printf "github-watch-fetcher\n"
-    printf "  rate:   %s\n" "$cur_rate"
+    printf '\n'
+    printf "  ${CYN}${BLD}CLAUDE TOKENS${RST}\n"
+    printf "  ─────────────────────────────────────────\n\n"
+
+    if [[ "$pct_num" =~ ^[0-9]+$ ]]; then
+      rownum=0
+      while IFS= read -r line; do
+        if (( rownum == 1 )); then
+          printf "  ${color}${BLD}%s %%${RST}\n" "$line"
+        else
+          printf "  ${color}${BLD}%s${RST}\n" "$line"
+        fi
+        (( rownum++ ))
+      done < <(_big_digits "$pct_num")
+    else
+      printf "  ${DIM}  (no data)${RST}\n\n"
+    fi
+
+    printf '\n'
+    printf "  %s  ${color}%s%%${RST}\n" "$(_progress_bar "$pct_num")" "$cur_pct"
+    printf '\n'
+    printf "  cost   %s\n" "$cur_cost"
+    printf "  reset  %s\n" "$cur_reset"
+
+    printf '\n'
+    printf "  ${CYN}${BLD}GITHUB${RST}\n"
+    printf "  ─────────────────────────────────────────\n"
+    printf "  rate  %s\n" "$cur_rate"
+
     if [[ -f "$gh_data_dir/gh_lines" && -s "$gh_data_dir/gh_lines" ]]; then
-      printf "  checks:\n"
+      printf '\n'
       while IFS=$'\t' read -r status conclusion _name _branch sha _app rawname; do
         [[ "$conclusion" == "cancelled" || "$conclusion" == "skipped" ]] && continue
-        local_icon="○"
+        icon="○"
+        icon_color="$DIM"
         case "$status" in
-        in_progress) local_icon="●" ;;
+        in_progress) icon="●"; icon_color="$YEL" ;;
         completed)
           case "$conclusion" in
-          success) local_icon="✓" ;;
-          failure) local_icon="✗" ;;
+          success) icon="✓"; icon_color="$GRN" ;;
+          failure) icon="✗"; icon_color="$RED" ;;
           esac ;;
         esac
-        printf "    %s  %-7s  %s\n" "$local_icon" "${sha:0:7}" "${rawname:0:24}"
+        printf "  ${icon_color}%s${RST}  ${DIM}%s${RST}  %s\n" "$icon" "${sha:0:7}" "${rawname:0:28}"
       done < "$gh_data_dir/gh_lines"
     fi
+
+    printf '\n'
   fi
 
   sleep 1
