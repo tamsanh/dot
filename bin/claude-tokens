@@ -5,6 +5,9 @@
 
 data_file="$HOME/.stats/claude-tokens"
 
+in_tmux=0
+[[ -n "$TMUX" ]] && in_tmux=1
+
 _get_height() {
   local lines
   lines=$(stty size </dev/tty 2>/dev/null | cut -d' ' -f1)
@@ -92,8 +95,9 @@ _redraw() {
   dir_color=$(_dir_color)
   bar_color=$(_bar_color)
 
-  # Fixed lines: title (1) + bottom-div + elapsed + reset-time + dollar-value = 5
-  local bar_height=$(( height - 5 ))
+  # Fixed lines: bottom-div + elapsed + reset-time + dollar-value = 4; add title if not tmux
+  local fixed=$(( in_tmux ? 4 : 5 ))
+  local bar_height=$(( height - fixed ))
   [[ $bar_height -lt 1 ]] && bar_height=1
 
   local filled=$(( bar_height * usage_pct / 95 ))
@@ -105,7 +109,9 @@ _redraw() {
   local fill_end=$(( fill_start + filled ))
 
   clear
-  printf "\033[1;48;5;%sm%*s%s%*s\033[0m\n" "$dir_color" "$lpad" '' "$dir" "$(( 8 - ${#dir} - lpad ))" ''
+  if [[ $in_tmux -eq 0 ]]; then
+    printf "\033[1;48;5;%sm%*s%s%*s\033[0m\n" "$dir_color" "$lpad" '' "$dir" "$(( 8 - ${#dir} - lpad ))" ''
+  fi
 
   local i
   for (( i = 0; i < bar_height; i++ )); do

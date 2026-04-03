@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# watch-pane — tmux session: claude-tokens (top) + github-watch (bottom)
+# watch-pane — tmux session: time-progress (top) + claude-tokens + github-tokens (bottom)
 # Status bar uses the same dir-hash color as the pane widgets.
 
 dir="$(basename "$PWD")"
 dir="${dir:0:8}"
 [[ -z "$dir" ]] && dir="watch"
-color=$(printf '%s' "$dir" | cksum | awk '{print ($1 % 200) + 50}')
+color=$(printf '%s' "$dir" | cksum | awk '{split("196 202 208 214 220 226 190 154 118 82 46 86 51 87 123 159 33 57 93 129 165 201 207 171",c); print c[($1%24)+1]}')
 session="watch-${dir}"
 
 # Kill any existing session so we start clean
@@ -17,7 +17,11 @@ tmux set-option -t "$session" status off
 tmux set-option -t "$session" pane-border-style "fg=black"
 tmux set-option -t "$session" pane-active-border-style "fg=black"
 
-# Top pane: claude-tokens — kill whole session on exit
+# Top pane: time-progress — kill whole session on exit
+tmux send-keys -t "$session" "time-progress; tmux kill-session -t '${session}'" Enter
+
+# Middle pane: claude-tokens — kill whole session on exit
+tmux split-window -v -t "$session"
 tmux send-keys -t "$session" "claude-tokens; tmux kill-session -t '${session}'" Enter
 
 # Bottom pane: github-tokens — kill whole session on exit
