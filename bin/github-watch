@@ -81,6 +81,15 @@ _gh_repo() {
 # Per-script-run cache dir: check-run results keyed by pr_num+sha
 _cache_dir=""
 
+_cleanup_and_exit() {
+  trap '' INT TERM          # Prevent re-entry if SIGTERM hits us via kill 0
+  [[ -n "$_cache_dir" ]] && rm -rf "$_cache_dir"
+  kill 0 2>/dev/null        # Kill any background gh subshells
+  exit
+}
+trap '[[ -n "$_cache_dir" ]] && rm -rf "$_cache_dir"' EXIT
+trap '_cleanup_and_exit' INT TERM
+
 _wait_all() {
   # Retry wait in case SIGWINCH interrupts it before all jobs finish
   local _w=("$@")
@@ -96,19 +105,17 @@ _wait_all() {
 # Results are cached by {pr_num}:{head_sha} so steady-state only costs one
 # `gh pr list` call per cycle instead of 61+.
 _load_gh() {
-  [[ -z "$_cache_dir" ]] && {
-    _cache_dir=$(mktemp -d)
-    trap 'rm -rf "$_cache_dir"' EXIT INT TERM
-  }
+  [[ -z "$_cache_dir" ]] && _cache_dir=$(mktemp -d)
+
+  # Rate limit: synchronous single call (fast, no temp file needed)
+  # graphql.remaining reflects gh pr list calls each cycle; core only drops on cache misses
+  local r
+  r=$(gh api rate_limit --jq '.resources.graphql.remaining' 2>/dev/null)
+  [[ -n "$r" ]] && gh_rate_remaining="$r"
 
   local tmpdir
   tmpdir=$(mktemp -d) || return
   local pids=() pr_order=()
-
-  # Rate limit runs unconditionally — repo detection doesn't affect it
-  gh api rate_limit --jq '.resources.core.remaining' \
-    > "$tmpdir/_rate" 2>/dev/null &
-  pids+=($!)
 
   local repo
   repo=$(_gh_repo)
@@ -150,10 +157,6 @@ _load_gh() {
   fi
 
   _wait_all "${pids[@]}"
-
-  local r
-  r=$(< "$tmpdir/_rate" 2>/dev/null)
-  [[ -n "$r" ]] && gh_rate_remaining="$r"
 
   local all=""
   for pr_num in "${pr_order[@]}"; do
