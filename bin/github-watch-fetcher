@@ -48,9 +48,24 @@ _gh_repo() {
 _fetch() {
   [[ -z "$_cache_dir" ]] && _cache_dir=$(mktemp -d)
 
-  local r
-  r=$(gh api rate_limit --jq '.resources.graphql.remaining' 2>/dev/null)
-  [[ -n "$r" ]] && printf '%s\n' "$r" > "${data_dir}/rate"
+  local r_json
+  r_json=$(gh api rate_limit 2>/dev/null)
+  if [[ -n "$r_json" ]]; then
+    # Per-project: graphql remaining (for github-watch display)
+    local graphql_r
+    graphql_r=$(jq -r '.resources.graphql.remaining // empty' <<< "$r_json" 2>/dev/null)
+    [[ -n "$graphql_r" ]] && printf '%s\n' "$graphql_r" > "${data_dir}/rate"
+
+    # Global: core REST usage (for github-tokens display)
+    jq -r '
+      .resources.core |
+      ((.used // 0) * 100 / (.limit // 5000) | floor | tostring),
+      "\(.used // 0)",
+      (.reset // 0 | tostring)
+    ' <<< "$r_json" 2>/dev/null \
+      > "$HOME/.stats/github-rate.tmp" \
+      && mv "$HOME/.stats/github-rate.tmp" "$HOME/.stats/github-rate"
+  fi
 
   local tmpdir
   tmpdir=$(mktemp -d) || return
