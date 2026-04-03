@@ -1,7 +1,40 @@
--- Python DAP configuration: auto-detects virtualenv / conda / system Python.
--- LazyVim's python extra already installs nvim-dap-python and debugpy; this
--- file just configures the adapter and adds useful launch configurations.
+-- Python DAP + LSP configuration.
+-- Configures pyright/basedpyright to use the local .venv when present.
+local function venv_python(root_dir)
+  local venv_env = os.getenv("VIRTUAL_ENV") or os.getenv("CONDA_PREFIX")
+  if venv_env then return venv_env .. "/bin/python" end
+  local local_venv = (root_dir or vim.fn.getcwd()) .. "/.venv/bin/python"
+  if vim.fn.executable(local_venv) == 1 then return local_venv end
+end
+
 return {
+  {
+    "neovim/nvim-lspconfig",
+    opts = {
+      servers = {
+        pyright = {
+          on_new_config = function(config, root_dir)
+            local python = venv_python(root_dir)
+            if python then
+              config.settings = config.settings or {}
+              config.settings.python = config.settings.python or {}
+              config.settings.python.pythonPath = python
+            end
+          end,
+        },
+        basedpyright = {
+          on_new_config = function(config, root_dir)
+            local python = venv_python(root_dir)
+            if python then
+              config.settings = config.settings or {}
+              config.settings.python = config.settings.python or {}
+              config.settings.python.pythonPath = python
+            end
+          end,
+        },
+      },
+    },
+  },
   {
     "mfussenegger/nvim-dap-python",
     -- LazyVim's python extra declares this plugin; we extend it here.
