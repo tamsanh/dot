@@ -1,0 +1,165 @@
+#!/usr/bin/env bash
+# claude-tokens — Claude Code 5-hour block usage as a vertical bar
+# Usage: claude-tokens [interval-seconds]  (default: 30)
+# Set CLAUDE_BLOCK_MAX (USD, default 10) to control when bar hits 95% full.
+# Requires ccusage: npm install -g ccusage  (falls back to npx)
+
+interval="${1:-30}"
+
+_get_height() {
+  local lines
+  lines=$(stty size </dev/tty 2>/dev/null | cut -d' ' -f1)
+  [[ -z "$lines" || "$lines" -le 0 ]] && lines=$(tput lines 2>/dev/null || echo 40)
+  printf '%s' "$lines"
+}
+
+_dir_color() {
+  printf '%s' "${PWD##*/}" | cksum | awk '{print ($1 % 200) + 50}'
+}
+
+_bar_color() {
+  printf 'BAR_%s' "${PWD##*/}" | cksum | awk '{print ($1 % 200) + 50}'
+}
+
+_ccusage() {
+  if command -v ccusage &>/dev/null; then
+    ccusage "$@"
+  elif command -v bunx &>/dev/null; then
+    bunx ccusage "$@"
+  else
+    npx --yes ccusage@latest "$@"
+  fi
+}
+
+usage_pct=0
+reset_epoch=0
+cost_str="$---"
+
+_load_usage() {
+  local json
+  json=$(_ccusage blocks --json 2>/dev/null)
+  [[ -z "$json" ]] && return
+
+  local parsed
+  parsed=$(printf '%s\n' "$json" | CLAUDE_BLOCK_MAX="${CLAUDE_BLOCK_MAX:-}" python3 -c '
+import sys, json, os
+from datetime import datetime, timezone
+
+d = json.load(sys.stdin)
+blocks = [b for b in d.get("blocks", []) if not b.get("isGap")]
+active = next((b for b in blocks if b.get("isActive")), blocks[-1] if blocks else None)
+if not active:
+    sys.exit(1)
+
+cost = float(active.get("costUSD", 0))
+
+max_env = os.environ.get("CLAUDE_BLOCK_MAX", "")
+if max_env:
+    max_cost = float(max_env)
+else:
+    completed = sorted(float(b.get("costUSD", 0)) for b in blocks if not b.get("isActive") and b.get("costUSD", 0) > 0.01)
+    if completed:
+        max_cost = completed[int(len(completed) * 0.9)]
+    else:
+        max_cost = 10.0
+
+pct = min(int(cost / max_cost * 100), 100) if max_cost > 0 else 0
+
+end = active.get("endTime", "")
+epoch = 0
+if end:
+    try:
+        dt = datetime.fromisoformat(end.replace("Z", "+00:00"))
+        epoch = int(dt.timestamp())
+    except Exception:
+        pass
+
+print(pct)
+print(f"${cost:.2f}")
+print(epoch)
+')
+
+  [[ -z "$parsed" ]] && return
+
+  usage_pct=$(printf '%s\n' "$parsed" | sed -n '1p')
+  cost_str=$(printf '%s\n'  "$parsed" | sed -n '2p')
+  local epoch
+  epoch=$(printf '%s\n' "$parsed" | sed -n '3p')
+  [[ "$epoch" =~ ^[0-9]+$ ]] && reset_epoch="$epoch"
+}
+
+_format_reset() {
+  local secs=$(( reset_epoch - $(date +%s) ))
+  if [[ $secs -le 0 ]]; then
+    printf '----'
+    return
+  fi
+  if [[ $secs -ge 3600 ]]; then
+    printf '%dh%dm' $(( secs / 3600 )) $(( (secs % 3600) / 60 ))
+  elif [[ $secs -ge 60 ]]; then
+    printf '%dm%ds' $(( secs / 60 )) $(( secs % 60 ))
+  else
+    printf '%ds' "$secs"
+  fi
+}
+
+prev_snapshot=""
+window_resized=0
+trap 'window_resized=1' SIGWINCH
+trap 'exit' INT TERM
+
+_redraw() {
+  local height
+  height=$(_get_height)
+
+  local reset_str
+  reset_str=$(_format_reset)
+
+  local snapshot="${usage_pct}:${reset_epoch}:${cost_str}:${height}"
+  if [[ "$snapshot" == "$prev_snapshot" && "$window_resized" -eq 0 ]]; then
+    return
+  fi
+  prev_snapshot="$snapshot"
+  window_resized=0
+
+  local dir="${PWD##*/}"
+  dir="${dir:0:8}"
+  local dir_color bar_color
+  dir_color=$(_dir_color)
+  bar_color=$(_bar_color)
+
+  # 7 fixed lines: top-div, dir, top-div, bottom-div, reset-time, dollar-value + scroll margin
+  local bar_height=$(( height - 7 ))
+  [[ $bar_height -lt 1 ]] && bar_height=1
+
+  # Bar fills top→bottom; completely full = 95% of CLAUDE_BLOCK_MAX spent
+  local filled=$(( bar_height * usage_pct / 95 ))
+  [[ $filled -gt $bar_height ]] && filled=$bar_height
+
+  clear
+  printf "\033[1;38;5;%sm%s\033[0m\n" "$dir_color" "────────"
+  printf "\033[1;38;5;%sm%s\033[0m\n" "$dir_color" "$dir"
+  printf "\033[1;38;5;%sm%s\033[0m\n" "$dir_color" "────────"
+
+  local i
+  for (( i = 0; i < bar_height; i++ )); do
+    if (( i < filled )); then
+      printf "\033[38;5;%sm%s\033[0m\n" "$bar_color" "████████"
+    # else
+      # printf "\033[38;5;240m%s\033[0m\n" "░░░░░░░░"
+    fi
+  done
+
+  printf "\033[1;38;5;240m%s\033[0m\n" "────────"
+  printf "\033[38;5;%sm%s\033[0m\n" "$dir_color" "${reset_str:0:8}"
+  printf "\033[38;5;%sm%s\033[0m\n" "$dir_color" "${cost_str:0:8}"
+}
+
+_load_usage
+_redraw
+
+while true; do
+  sleep "$interval"
+  _load_usage
+  _redraw
+done

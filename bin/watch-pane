@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# watch-pane — tmux session: claude-tokens (top) + github-watch (bottom)
+# Status bar uses the same dir-hash color as the pane widgets.
+
+dir="${PWD##*/}"
+color=$(printf '%s' "$dir" | cksum | awk '{print ($1 % 200) + 50}')
+session="watch-${dir}"
+
+# Reuse existing session if already running
+if tmux has-session -t "$session" 2>/dev/null; then
+  tmux attach-session -t "$session"
+  exit
+fi
+
+tmux new-session -d -s "$session"
+
+# Status bar: centered dir name, same color as widget headers
+tmux set-option -t "$session" status-position bottom
+tmux set-option -t "$session" status-style "bg=colour235,bold"
+tmux set-option -t "$session" status-left ""
+tmux set-option -t "$session" status-right ""
+tmux set-option -t "$session" status-justify centre
+tmux set-option -t "$session" window-status-current-format "#[fg=colour${color}] $dir "
+tmux set-option -t "$session" window-status-format "#[fg=colour${color}] $dir "
+
+# Top pane: claude-tokens
+tmux send-keys -t "$session" "claude-tokens" Enter
+
+# Bottom pane: github-watch
+tmux split-window -v -t "$session"
+tmux send-keys -t "$session" "github-watch" Enter
+
+# Focus top pane
+tmux select-pane -t "$session:0.0"
+
+tmux attach-session -t "$session"
