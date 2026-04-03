@@ -21,3 +21,5 @@ opt.swapfile = false
 
 -- Show which line your cursor is on
 opt.cursorline = true
+
+opt.mouse = ""
