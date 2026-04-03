@@ -16,11 +16,11 @@ _get_height() {
 }
 
 _dir_color() {
-  printf '%s' "${PWD##*/}" | cksum | awk '{print ($1 % 200) + 50}'
+  printf '%s' "${PWD##*/}" | cksum | awk '{split("196 202 208 214 220 226 190 154 118 82 46 86 51 87 123 159 33 57 93 129 165 201 207 171",c); print c[($1%24)+1]}'
 }
 
 _bar_color() {
-  printf 'GH_%s' "${PWD##*/}" | cksum | awk '{print ($1 % 200) + 50}'
+  printf 'GH_%s' "${PWD##*/}" | cksum | awk '{split("196 202 208 214 220 226 190 154 118 82 46 86 51 87 123 159 33 57 93 129 165 201 207 171",c); print c[($1%24)+1]}'
 }
 
 usage_pct=0

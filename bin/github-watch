@@ -31,7 +31,7 @@ _recalc_limits() {
 }
 
 _sha_color() {
-  printf '%s' "$1" | cksum | awk '{print ($1 % 200) + 50}'
+  printf '%s' "$1" | cksum | awk '{split("196 202 208 214 220 226 190 154 118 82 46 86 51 87 123 159 33 57 93 129 165 201 207 171",c); print c[($1%24)+1]}'
 }
 
 _load_entries() {
@@ -125,7 +125,7 @@ _redraw() {
   dir="${dir:0:8}"
   local lpad=$(( (8 - ${#dir}) / 2 ))
   local dir_color
-  dir_color=$(printf '%s' "$dir" | cksum | awk '{print ($1 % 200) + 50}')
+  dir_color=$(printf '%s' "$dir" | cksum | awk '{split("196 202 208 214 220 226 190 154 118 82 46 86 51 87 123 159 33 57 93 129 165 201 207 171",c); print c[($1%24)+1]}')
 
   clear
   if [[ $in_tmux -eq 0 ]]; then
