@@ -55,12 +55,15 @@ _fetch() {
     local graphql_r
     graphql_r=$(jq -r '.resources.graphql.remaining // empty' <<< "$r_json" 2>/dev/null)
     [[ -n "$graphql_r" ]] && printf '%s\n' "$graphql_r" > "${data_dir}/rate"
+    local graphql_reset
+    graphql_reset=$(jq -r '.resources.graphql.reset // empty' <<< "$r_json" 2>/dev/null)
+    [[ -n "$graphql_reset" ]] && printf '%s\n' "$graphql_reset" > "${data_dir}/rate_reset"
 
     # Global: core REST usage (for github-tokens display)
     jq -r '
       .resources.core |
       ((.used // 0) * 100 / (.limit // 5000) | floor | tostring),
-      "\(.used // 0)",
+      ((.remaining // 0) | tostring),
       (.reset // 0 | tostring)
     ' <<< "$r_json" 2>/dev/null \
       > "$HOME/.stats/github-rate.tmp" \
