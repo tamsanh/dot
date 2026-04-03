@@ -1,32 +1,11 @@
 #!/usr/bin/env bash
-# github-watch-fetcher — background GitHub API fetcher for github-watch display
-# Usage: github-watch-fetcher [interval-seconds]  (default: 10)
+# github-watch-fetcher — one-shot GitHub API fetcher for github-watch display
+# Fetches once and exits. Interval coordination is handled by start-fetchers.
 # Run from the project directory.
 
-interval="${1:-10}"
 data_dir="$HOME/.stats/github-watch-$(printf '%s' "$PWD" | cksum | awk '{print $1}')"
-pid_file="${data_dir}.pid"
-
-if [[ -f "$pid_file" ]]; then
-  existing_pid=$(< "$pid_file")
-  if kill -0 "$existing_pid" 2>/dev/null; then
-    exit 0
-  fi
-fi
-mkdir -p "$data_dir"
-printf '%s' "$$" > "$pid_file"
-
-_cache_dir=""
-
-_cleanup_and_exit() {
-  trap '' INT TERM
-  rm -f "$pid_file"
-  [[ -n "$_cache_dir" ]] && rm -rf "$_cache_dir"
-  kill 0 2>/dev/null
-  exit
-}
-trap 'rm -f "$pid_file"; [[ -n "$_cache_dir" ]] && rm -rf "$_cache_dir"' EXIT
-trap '_cleanup_and_exit' INT TERM
+_cache_dir="${data_dir}/check-cache"
+mkdir -p "$data_dir" "$_cache_dir"
 
 _wait_all() {
   local _w=("$@")
@@ -46,7 +25,6 @@ _gh_repo() {
 }
 
 _fetch() {
-  [[ -z "$_cache_dir" ]] && _cache_dir=$(mktemp -d)
 
   local r_json
   r_json=$(gh api rate_limit 2>/dev/null)
@@ -118,7 +96,3 @@ _fetch() {
 }
 
 _fetch
-while true; do
-  sleep "$interval"
-  _fetch
-done

@@ -1,23 +1,11 @@
 #!/usr/bin/env bash
-# claude-tokens-fetcher — background fetcher for claude-tokens display
-# Usage: claude-tokens-fetcher [interval-seconds]  (default: 30)
+# claude-tokens-fetcher — one-shot fetch for claude-tokens display
+# Fetches once and exits. Interval coordination is handled by start-fetchers.
 # Set CLAUDE_BLOCK_MAX (USD) to override auto-scaling.
 # Requires ccusage: npm install -g ccusage  (falls back to bunx/npx)
 
-interval="${1:-30}"
 data_file="$HOME/.stats/claude-tokens"
-pid_file="$HOME/.stats/claude-tokens-fetcher.pid"
 mkdir -p "$HOME/.stats"
-
-if [[ -f "$pid_file" ]]; then
-  existing_pid=$(< "$pid_file")
-  if kill -0 "$existing_pid" 2>/dev/null; then
-    exit 0
-  fi
-fi
-printf '%s' "$$" > "$pid_file"
-trap 'rm -f "$pid_file"' EXIT
-trap 'rm -f "$pid_file"; exit' INT TERM
 
 _ccusage() {
   if command -v ccusage &>/dev/null; then
@@ -87,7 +75,3 @@ print(start_epoch)
 }
 
 _fetch
-while true; do
-  sleep "$interval"
-  _fetch
-done

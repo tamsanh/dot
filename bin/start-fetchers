@@ -5,9 +5,17 @@
 claude_data="$HOME/.stats/claude-tokens"
 gh_data_dir="$HOME/.stats/github-watch-$(printf '%s' "$PWD" | cksum | awk '{print $1}')"
 
-# Start fetchers; both are single-instance so safe to call if already running
-claude-tokens-fetcher & disown $!
-github-watch-fetcher & disown $!
+claude_interval=30
+gh_interval=10
+claude_last=0
+gh_last=0
+
+# Initial fetch immediately; set last-run so intervals count from now
+_now=$(date +%s)
+claude_last=$_now
+gh_last=$_now
+claude-tokens-fetcher &
+github-watch-fetcher &
 
 RED=$'\033[91m'; YEL=$'\033[93m'; GRN=$'\033[92m'
 CYN=$'\033[96m'; BLD=$'\033[1m';  DIM=$'\033[2m';  RST=$'\033[0m'
@@ -83,6 +91,16 @@ prev_snapshot=""
 trap 'exit' INT TERM
 
 while true; do
+  now=$(date +%s)
+  if (( now - claude_last >= claude_interval )); then
+    claude_last=$now
+    claude-tokens-fetcher &
+  fi
+  if (( now - gh_last >= gh_interval )); then
+    gh_last=$now
+    github-watch-fetcher &
+  fi
+
   cur_pct='--'
   cur_cost='$---'
   cur_reset='----'
