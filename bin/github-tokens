@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+# github-tokens — GitHub API core rate limit usage as a vertical bar
+# Reads from github-watch-fetcher (writes ~/.stats/github-rate each cycle).
+# 5000 requests/hour; bar is full at 95% used.
+
+data_file="$HOME/.stats/github-rate"
+
+_get_height() {
+  local lines
+  lines=$(stty size </dev/tty 2>/dev/null | cut -d' ' -f1)
+  [[ -z "$lines" || "$lines" -le 0 ]] && lines=$(tput lines 2>/dev/null || echo 40)
+  printf '%s' "$lines"
+}
+
+_dir_color() {
+  printf '%s' "${PWD##*/}" | cksum | awk '{print ($1 % 200) + 50}'
+}
+
+_bar_color() {
+  printf 'GH_%s' "${PWD##*/}" | cksum | awk '{print ($1 % 200) + 50}'
+}
+
+usage_pct=0
+reset_epoch=0
+used_str='0'
+
+_load_data() {
+  [[ ! -f "$data_file" ]] && return
+  local content
+  content=$(< "$data_file")
+  [[ -z "$content" ]] && return
+  usage_pct=$(sed -n '1p' <<< "$content")
+  used_str=$(sed -n '2p'  <<< "$content")
+  local epoch
+  epoch=$(sed -n '3p' <<< "$content")
+  [[ "$epoch" =~ ^[0-9]+$ ]] && reset_epoch="$epoch"
+}
+
+_format_reset() {
+  local secs=$(( reset_epoch - $(date +%s) ))
+  if [[ $secs -le 0 ]]; then
+    printf '%s' '----'
+    return
+  fi
+  if [[ $secs -ge 3600 ]]; then
+    printf '%dh%dm' $(( secs / 3600 )) $(( (secs % 3600) / 60 ))
+  elif [[ $secs -ge 60 ]]; then
+    printf '%dm%ds' $(( secs / 60 )) $(( secs % 60 ))
+  else
+    printf '%ds' "$secs"
+  fi
+}
+
+tput civis 2>/dev/null
+
+prev_snapshot=""
+window_resized=0
+trap 'window_resized=1' SIGWINCH
+trap 'tput cnorm 2>/dev/null; exit' INT TERM
+
+_redraw() {
+  local height
+  height=$(_get_height)
+
+  local reset_str
+  reset_str=$(_format_reset)
+
+  local snapshot="${usage_pct}:${used_str}:${reset_str}:${height}"
+  if [[ "$snapshot" == "$prev_snapshot" && "$window_resized" -eq 0 ]]; then
+    return
+  fi
+  prev_snapshot="$snapshot"
+  window_resized=0
+
+  local dir="${PWD##*/}"
+  dir="${dir:0:8}"
+  local dir_color bar_color
+  dir_color=$(_dir_color)
+  bar_color=$(_bar_color)
+
+  # Fixed lines: title (1) + bottom-div + reset-time + used-count = 4
+  local bar_height=$(( height - 4 ))
+  [[ $bar_height -lt 1 ]] && bar_height=1
+
+  local filled=$(( bar_height * usage_pct / 95 ))
+  [[ $filled -lt 1 ]] && filled=1
+  [[ $filled -gt $bar_height ]] && filled=$bar_height
+
+  # Filled region grows from center outward
+  local fill_start=$(( bar_height / 2 - filled / 2 ))
+  local fill_end=$(( fill_start + filled ))
+
+  clear
+  printf "\033[1;48;5;%sm%-8s\033[0m\n" "$dir_color" "$dir"
+
+  local i
+  for (( i = 0; i < bar_height; i++ )); do
+    if (( i >= fill_start && i < fill_end )); then
+      printf "\033[38;5;%sm%s\033[0m\n" "$bar_color" "████████"
+    else
+      echo ""
+    fi
+  done
+
+  printf "\033[1;38;5;240m%s\033[0m\n" "────────"
+  printf "\033[38;5;%sm%s\033[0m\n" "$dir_color" "${reset_str:0:8}"
+  printf "\033[38;5;%sm%s\033[0m" "$dir_color" "${used_str:0:8}"
+}
+
+_load_data
+_redraw
+
+while true; do
+  sleep 1
+  _load_data
+  _redraw
+done
