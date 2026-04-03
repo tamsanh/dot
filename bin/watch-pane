@@ -32,6 +32,9 @@ tmux send-keys -t "$session" "github-tokens; tmux kill-session -t '${session}'" 
 tmux split-window -v -t "$session"
 tmux send-keys -t "$session" "github-watch; tmux kill-session -t '${session}'" Enter
 
+# Evenly distribute all panes
+tmux select-layout -t "$session" even-vertical
+
 # Focus top pane
 tmux select-pane -t "$session:0.0"
 
