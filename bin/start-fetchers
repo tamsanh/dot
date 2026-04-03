@@ -121,9 +121,11 @@ while true; do
   fi
 
   cur_rate='----'
+  cur_gh_reset='----'
   [[ -f "$gh_data_dir/rate" ]] && cur_rate=$(< "$gh_data_dir/rate")
+  [[ -f "$gh_data_dir/rate_reset" ]] && cur_gh_reset=$(_format_reset "$(< "$gh_data_dir/rate_reset")")
 
-  snapshot="${cur_pct}${cur_cost}${cur_reset}${cur_elapsed}${cur_rate}"
+  snapshot="${cur_pct}${cur_cost}${cur_reset}${cur_elapsed}${cur_rate}${cur_gh_reset}"
   [[ -f "$gh_data_dir/gh_lines" ]] && snapshot+=$(< "$gh_data_dir/gh_lines")
 
   if [[ "$snapshot" != "$prev_snapshot" ]]; then
@@ -176,6 +178,10 @@ while true; do
     else
       printf "  ${DIM}  (no data)${RST}\n"
     fi
+
+    printf '\n'
+    printf "  remaining  %s\n" "$cur_rate"
+    printf "  reset      %s\n" "$cur_gh_reset"
 
     if [[ -f "$gh_data_dir/gh_lines" && -s "$gh_data_dir/gh_lines" ]]; then
       printf '\n'
