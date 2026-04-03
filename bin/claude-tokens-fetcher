@@ -68,9 +68,19 @@ if end:
     except Exception:
         pass
 
+start = active.get("startTime", "")
+start_epoch = 0
+if start:
+    try:
+        dt = datetime.fromisoformat(start.replace("Z", "+00:00"))
+        start_epoch = int(dt.timestamp())
+    except Exception:
+        pass
+
 print(pct)
 print(f"${cost:.2f}")
 print(epoch)
+print(start_epoch)
 ')
   [[ -z "$parsed" ]] && return
   printf '%s\n' "$parsed" > "${data_file}.tmp" && mv "${data_file}.tmp" "$data_file"
