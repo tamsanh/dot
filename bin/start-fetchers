@@ -71,6 +71,14 @@ _pct_color() {
   printf '%s' "$GRN"
 }
 
+_rate_color() {
+  local rate="$1"
+  [[ ! "$rate" =~ ^[0-9]+$ ]] && printf '%s' "$DIM" && return
+  (( rate < 500  )) && printf '%s' "$RED" && return
+  (( rate < 1500 )) && printf '%s' "$YEL" && return
+  printf '%s' "$GRN"
+}
+
 prev_snapshot=""
 trap 'exit' INT TERM
 
@@ -123,8 +131,22 @@ while true; do
 
     printf '\n'
     printf "  ${CYN}${BLD}GITHUB${RST}\n"
-    printf "  ─────────────────────────────────────────\n"
-    printf "  rate  %s\n" "$cur_rate"
+    printf "  ─────────────────────────────────────────\n\n"
+
+    rate_color=$(_rate_color "$cur_rate")
+    if [[ "$cur_rate" =~ ^[0-9]+$ ]]; then
+      rownum=0
+      while IFS= read -r line; do
+        if (( rownum == 1 )); then
+          printf "  ${rate_color}${BLD}%s remaining${RST}\n" "$line"
+        else
+          printf "  ${rate_color}${BLD}%s${RST}\n" "$line"
+        fi
+        (( rownum++ ))
+      done < <(_big_digits "$cur_rate")
+    else
+      printf "  ${DIM}  (no data)${RST}\n"
+    fi
 
     if [[ -f "$gh_data_dir/gh_lines" && -s "$gh_data_dir/gh_lines" ]]; then
       printf '\n'
