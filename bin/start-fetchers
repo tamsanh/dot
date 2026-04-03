@@ -14,10 +14,10 @@ CYN=$'\033[96m'; BLD=$'\033[1m';  DIM=$'\033[2m';  RST=$'\033[0m'
 
 _format_reset() {
   local epoch="$1"
-  [[ ! "$epoch" =~ ^[0-9]+$ ]] && printf '----' && return
+  [[ ! "$epoch" =~ ^[0-9]+$ ]] && printf '%s' '----' && return
   local secs=$(( epoch - $(date +%s) ))
   if [[ $secs -le 0 ]]; then
-    printf '----'
+    printf '%s' '----'
   elif [[ $secs -ge 3600 ]]; then
     printf '%dh%dm' $(( secs / 3600 )) $(( (secs % 3600) / 60 ))
   elif [[ $secs -ge 60 ]]; then
