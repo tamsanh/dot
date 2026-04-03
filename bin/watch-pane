@@ -16,12 +16,7 @@ fi
 tmux new-session -d -s "$session"
 
 # Status bar: centered dir name, same color as widget headers
-tmux set-option -t "$session" status-position bottom
-tmux set-option -t "$session" status-style "bg=colour235,bold"
-tmux set-option -t "$session" status-left ""
-tmux set-option -t "$session" status-right ""
-tmux set-option -t "$session" window-status-current-format "#[bg=colour${color}] $dir "
-tmux set-option -t "$session" window-status-format "#[bg=colour${color}] $dir "
+tmux set-option -t "$session" status off
 tmux set-option -t "$session" pane-border-lines none
 
 # Top pane: claude-tokens
