@@ -24,9 +24,13 @@ tmux send-keys -t "$session" "time-progress; tmux kill-session -t '${session}'" 
 tmux split-window -v -t "$session"
 tmux send-keys -t "$session" "claude-tokens; tmux kill-session -t '${session}'" Enter
 
-# Bottom pane: github-tokens — kill whole session on exit
+# Third pane: github-tokens — kill whole session on exit
 tmux split-window -v -t "$session"
 tmux send-keys -t "$session" "github-tokens; tmux kill-session -t '${session}'" Enter
+
+# Bottom pane: github-watch — kill whole session on exit
+tmux split-window -v -t "$session"
+tmux send-keys -t "$session" "github-watch; tmux kill-session -t '${session}'" Enter
 
 # Focus top pane
 tmux select-pane -t "$session:0.0"
