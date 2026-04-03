@@ -3,6 +3,7 @@
 # Status bar uses the same dir-hash color as the pane widgets.
 
 dir="${PWD##*/}"
+dir="${dir:0:8}"
 color=$(printf '%s' "$dir" | cksum | awk '{print ($1 % 200) + 50}')
 session="watch-${dir}"
 
@@ -19,9 +20,9 @@ tmux set-option -t "$session" status-position bottom
 tmux set-option -t "$session" status-style "bg=colour235,bold"
 tmux set-option -t "$session" status-left ""
 tmux set-option -t "$session" status-right ""
-tmux set-option -t "$session" status-justify centre
-tmux set-option -t "$session" window-status-current-format "#[fg=colour${color}] $dir "
-tmux set-option -t "$session" window-status-format "#[fg=colour${color}] $dir "
+tmux set-option -t "$session" window-status-current-format "#[bg=colour${color}] $dir "
+tmux set-option -t "$session" window-status-format "#[bg=colour${color}] $dir "
+tmux set-option -t "$session" pane-border-lines none
 
 # Top pane: claude-tokens
 tmux send-keys -t "$session" "claude-tokens" Enter
