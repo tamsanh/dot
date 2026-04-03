@@ -2,30 +2,33 @@
 # watch-pane — tmux session: claude-tokens (top) + github-watch (bottom)
 # Status bar uses the same dir-hash color as the pane widgets.
 
-dir="${PWD##*/}"
+dir="$(basename "$PWD")"
 dir="${dir:0:8}"
+[[ -z "$dir" ]] && dir="watch"
 color=$(printf '%s' "$dir" | cksum | awk '{print ($1 % 200) + 50}')
 session="watch-${dir}"
 
-# Reuse existing session if already running
-if tmux has-session -t "$session" 2>/dev/null; then
-  tmux attach-session -t "$session"
-  exit
-fi
+# Kill any existing session so we start clean
+tmux kill-session -t "$session" 2>/dev/null
 
-tmux new-session -d -s "$session"
+tmux new-session -d -s "$session" -x 9 -y "$(tput lines)"
 
 tmux set-option -t "$session" status off
-tmux set-option -t "$session" pane-border-lines none
+tmux set-option -t "$session" pane-border-style "fg=black"
+tmux set-option -t "$session" pane-active-border-style "fg=black"
 
-# Top pane: claude-tokens
-tmux send-keys -t "$session" "claude-tokens" Enter
+# Top pane: claude-tokens — kill whole session on exit
+tmux send-keys -t "$session" "claude-tokens; tmux kill-session -t '${session}'" Enter
 
-# Bottom pane: github-watch
+# Bottom pane: github-tokens — kill whole session on exit
 tmux split-window -v -t "$session"
-tmux send-keys -t "$session" "github-watch" Enter
+tmux send-keys -t "$session" "github-tokens; tmux kill-session -t '${session}'" Enter
 
 # Focus top pane
 tmux select-pane -t "$session:0.0"
 
-tmux attach-session -t "$session"
+if [[ -n "$TMUX" ]]; then
+  tmux switch-client -t "$session"
+else
+  tmux attach-session -t "$session"
+fi
