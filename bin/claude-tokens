@@ -39,7 +39,7 @@ _load_data() {
 _format_reset() {
   local secs=$(( reset_epoch - $(date +%s) ))
   if [[ $secs -le 0 ]]; then
-    printf '----'
+    printf '%s' '----'
     return
   fi
   if [[ $secs -ge 3600 ]]; then
