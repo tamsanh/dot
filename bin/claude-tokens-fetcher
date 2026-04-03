@@ -33,7 +33,8 @@ active = next((b for b in blocks if b.get("isActive")), blocks[-1] if blocks els
 if not active:
     sys.exit(1)
 
-cost = float(active.get("costUSD", 0))
+active_cost = float(active.get("costUSD", 0))
+cost = sum(float(b.get("costUSD", 0)) for b in blocks)
 
 max_env = os.environ.get("CLAUDE_BLOCK_MAX", "")
 if max_env:
@@ -45,7 +46,7 @@ else:
     else:
         max_cost = 10.0
 
-pct = min(int(cost / max_cost * 100), 100) if max_cost > 0 else 0
+pct = min(int(active_cost / max_cost * 100), 100) if max_cost > 0 else 0
 
 end = active.get("endTime", "")
 epoch = 0

@@ -20,6 +20,14 @@ github-watch-fetcher &
 RED=$'\033[91m'; YEL=$'\033[93m'; GRN=$'\033[92m'
 CYN=$'\033[96m'; BLD=$'\033[1m';  DIM=$'\033[2m';  RST=$'\033[0m'
 
+_format_elapsed() {
+  local start_epoch="$1"
+  [[ ! "$start_epoch" =~ ^[0-9]+$ || "$start_epoch" -eq 0 ]] && printf '%s' '--:--' && return
+  local secs=$(( $(date +%s) - start_epoch ))
+  [[ $secs -lt 0 ]] && secs=0
+  printf '%02d:%02d' $(( secs / 3600 )) $(( (secs % 3600) / 60 ))
+}
+
 _format_reset() {
   local epoch="$1"
   [[ ! "$epoch" =~ ^[0-9]+$ ]] && printf '%s' '----' && return
@@ -104,16 +112,18 @@ while true; do
   cur_pct='--'
   cur_cost='$---'
   cur_reset='----'
+  cur_elapsed='--:--'
   if [[ -f "$claude_data" ]]; then
     cur_pct=$(sed -n '1p' "$claude_data")
     cur_cost=$(sed -n '2p' "$claude_data")
     cur_reset=$(_format_reset "$(sed -n '3p' "$claude_data")")
+    cur_elapsed=$(_format_elapsed "$(sed -n '4p' "$claude_data")")
   fi
 
   cur_rate='----'
   [[ -f "$gh_data_dir/rate" ]] && cur_rate=$(< "$gh_data_dir/rate")
 
-  snapshot="${cur_pct}${cur_cost}${cur_reset}${cur_rate}"
+  snapshot="${cur_pct}${cur_cost}${cur_reset}${cur_elapsed}${cur_rate}"
   [[ -f "$gh_data_dir/gh_lines" ]] && snapshot+=$(< "$gh_data_dir/gh_lines")
 
   if [[ "$snapshot" != "$prev_snapshot" ]]; then
@@ -144,8 +154,9 @@ while true; do
     printf '\n'
     printf "  %s  ${color}%s%%${RST}\n" "$(_progress_bar "$pct_num")" "$cur_pct"
     printf '\n'
-    printf "  cost   %s\n" "$cur_cost"
-    printf "  reset  %s\n" "$cur_reset"
+    printf "  cost     %s\n" "$cur_cost"
+    printf "  elapsed  %s\n" "$cur_elapsed"
+    printf "  reset    %s\n" "$cur_reset"
 
     printf '\n'
     printf "  ${CYN}${BLD}GITHUB${RST}\n"
